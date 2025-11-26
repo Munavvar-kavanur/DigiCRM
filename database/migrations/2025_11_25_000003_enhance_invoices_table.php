@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('invoices', function (Blueprint $table) {
+            $table->enum('discount_type', ['fixed', 'percent'])->default('percent')->after('discount');
+        });
+
+        Schema::table('invoice_items', function (Blueprint $table) {
+            $table->string('title')->nullable()->after('invoice_id');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('invoices', function (Blueprint $table) {
+            $table->dropColumn('discount_type');
+        });
+
+        Schema::table('invoice_items', function (Blueprint $table) {
+            $table->dropColumn('title');
+        });
+    }
+};

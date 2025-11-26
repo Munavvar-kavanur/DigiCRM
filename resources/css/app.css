@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* Fix for date inputs cutting off the year */
+input[type="date"] {
+    min-width: 160px;
+    display: block;
+}
