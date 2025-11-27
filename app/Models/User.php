@@ -28,6 +28,8 @@ class User extends Authenticatable
         'employee_type_id',
         'payroll_type_id',
         'is_employee',
+        'branch_id',
+        'role',
     ];
 
     /**
@@ -58,6 +60,21 @@ class User extends Authenticatable
         return $this->profile_photo_path
             ? asset('storage/' . $this->profile_photo_path)
             : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function isSuperAdmin()
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isBranchAdmin()
+    {
+        return $this->role === 'branch_admin';
     }
 
     public function payrolls()

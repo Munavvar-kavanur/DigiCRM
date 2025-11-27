@@ -3,19 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToBranch;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Client extends Model
 {
+    use HasFactory, BelongsToBranch;
+
     protected $fillable = [
         'name',
         'email',
         'phone',
         'address',
         'company_name',
-        'website',
+        'status',
+        'branch_id',
         'tax_id',
         'notes',
-        'status',
     ];
 
     public function projects()

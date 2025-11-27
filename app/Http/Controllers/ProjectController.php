@@ -10,7 +10,7 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Project::with('client');
+        $query = Project::with(['client', 'branch']);
 
         // Search
         if ($request->has('search')) {
@@ -33,8 +33,14 @@ class ProjectController extends Controller
             $query->where('client_id', $request->client_id);
         }
 
+        // Branch Filter (Super Admin)
+        if (auth()->user()->isSuperAdmin() && $request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
+
         $projects = $query->latest()->paginate(10);
         $clients = Client::orderBy('name')->get();
+        $branches = \App\Models\Branch::orderBy('name')->get();
 
         // Stats
         $totalProjects = Project::count();
@@ -42,27 +48,45 @@ class ProjectController extends Controller
         $completedProjects = Project::where('status', 'completed')->count();
         $onHoldProjects = Project::where('status', 'on_hold')->count();
 
-        return view('projects.index', compact('projects', 'clients', 'totalProjects', 'inProgressProjects', 'completedProjects', 'onHoldProjects'));
+        return view('projects.index', compact('projects', 'clients', 'branches', 'totalProjects', 'inProgressProjects', 'completedProjects', 'onHoldProjects'));
     }
 
     public function create()
     {
-        $clients = Client::where('status', 'active')->get();
-        return view('projects.create', compact('clients'));
+        if (auth()->user()->isSuperAdmin()) {
+            $clients = request()->old('branch_id') 
+                ? Client::where('status', 'active')->where('branch_id', request()->old('branch_id'))->get()
+                : collect();
+        } else {
+            $clients = Client::where('status', 'active')->where('branch_id', auth()->user()->branch_id)->get();
+        }
+        $branches = \App\Models\Branch::orderBy('name')->get();
+        return view('projects.create', compact('clients', 'branches'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'client_id' => 'required|exists:clients,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:pending,in_progress,completed,on_hold',
             'deadline' => 'nullable|date',
             'budget' => 'nullable|numeric',
-        ]);
+        ];
 
-        Project::create($validated);
+        if (auth()->user()->isSuperAdmin()) {
+            $rules['branch_id'] = 'nullable|exists:branches,id';
+        }
+
+        $validated = $request->validate($rules);
+
+        $projectData = $validated;
+        if (auth()->user()->isSuperAdmin() && isset($validated['branch_id'])) {
+            $projectData['branch_id'] = $validated['branch_id'];
+        }
+
+        Project::create($projectData);
 
         return redirect()->route('projects.index')->with('success', 'Project created successfully.');
     }
@@ -94,22 +118,34 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
-        $clients = Client::where('status', 'active')->get();
-        return view('projects.edit', compact('project', 'clients'));
+        $clients = Client::where('status', 'active')->where('branch_id', $project->branch_id)->get();
+        $branches = \App\Models\Branch::orderBy('name')->get();
+        return view('projects.edit', compact('project', 'clients', 'branches'));
     }
 
     public function update(Request $request, Project $project)
     {
-        $validated = $request->validate([
+        $rules = [
             'client_id' => 'required|exists:clients,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:pending,in_progress,completed,on_hold',
             'deadline' => 'nullable|date',
             'budget' => 'nullable|numeric',
-        ]);
+        ];
 
-        $project->update($validated);
+        if (auth()->user()->isSuperAdmin()) {
+            $rules['branch_id'] = 'nullable|exists:branches,id';
+        }
+
+        $validated = $request->validate($rules);
+
+        $updateData = $validated;
+        if (auth()->user()->isSuperAdmin() && isset($validated['branch_id'])) {
+            $updateData['branch_id'] = $validated['branch_id'];
+        }
+
+        $project->update($updateData);
 
         return redirect()->route('projects.index')->with('success', 'Project updated successfully.');
     }

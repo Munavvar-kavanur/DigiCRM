@@ -2,28 +2,48 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
+use App\Traits\BelongsToBranch;
 
 class Invoice extends Model
 {
+    use HasFactory, BelongsToBranch;
+
     protected $fillable = [
-        'invoice_number',
         'client_id',
         'project_id',
         'issue_date',
         'due_date',
+        'subtotal',
+        'total_amount',
         'status',
+        'invoice_number',
         'is_recurring',
         'recurring_frequency',
-        'subtotal',
+        'next_invoice_date',
+        'branch_id',
         'tax',
         'discount',
         'discount_type',
-        'total_amount',
         'grand_total',
         'balance_due',
-        'notes',
         'terms',
+        'notes',
+    ];
+
+    protected $casts = [
+        'issue_date' => 'date',
+        'due_date' => 'date',
+        'next_invoice_date' => 'date',
+        'subtotal' => 'decimal:2',
+        'total_amount' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'grand_total' => 'decimal:2',
+        'balance_due' => 'decimal:2',
+        'is_recurring' => 'boolean',
     ];
 
     public function client()

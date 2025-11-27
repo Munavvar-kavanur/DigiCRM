@@ -28,10 +28,10 @@
                 <!-- Header Bar -->
                 <div class="bg-gray-800 text-white px-8 py-6 flex justify-between items-center">
                     <div class="flex items-center">
-                        @if(isset($globalSettings['invoice_logo_light']))
-                            <img src="{{ asset('storage/' . $globalSettings['invoice_logo_light']) }}" alt="Logo" class="h-12 mr-4">
+                        @if(isset($settings['invoice_logo_light']))
+                            <img src="{{ asset('storage/' . $settings['invoice_logo_light']) }}" alt="Logo" class="h-12 mr-4">
                         @else
-                            <h2 class="text-2xl font-bold tracking-wider">{{ $globalSettings['company_name'] ?? 'COMPANY' }}</h2>
+                            <h2 class="text-2xl font-bold tracking-wider">{{ $settings['company_name'] ?? 'COMPANY' }}</h2>
                         @endif
                     </div>
                     <div class="text-right">
@@ -41,6 +41,11 @@
                             <span class="px-2 py-1 text-xs font-bold uppercase rounded bg-white text-gray-800">
                                 {{ $estimate->status }}
                             </span>
+                            @if(auth()->user()->isSuperAdmin() && $estimate->branch)
+                                <span class="px-2 py-1 text-xs font-bold uppercase rounded bg-purple-100 text-purple-800 ml-2">
+                                    {{ $estimate->branch->name }}
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -51,11 +56,11 @@
                         <div class="w-1/2 pr-4">
                             <h3 class="text-xs font-bold text-gray-500 uppercase border-b border-gray-200 pb-1 mb-2">From</h3>
                             <div class="text-sm leading-relaxed">
-                                <strong class="text-gray-900 text-base">{{ $globalSettings['company_name'] ?? 'My Company' }}</strong><br>
-                                {!! nl2br(e($globalSettings['company_address'] ?? '')) !!}<br>
-                                {{ $globalSettings['company_email'] ?? '' }}<br>
-                                {{ $globalSettings['company_phone'] ?? '' }}<br>
-                                {{ $globalSettings['company_website'] ?? '' }}
+                                <strong class="text-gray-900 text-base">{{ $settings['company_name'] ?? 'My Company' }}</strong><br>
+                                {!! nl2br(e($settings['company_address'] ?? '')) !!}<br>
+                                {{ $settings['company_email'] ?? '' }}<br>
+                                {{ $settings['company_phone'] ?? '' }}<br>
+                                {{ $settings['company_website'] ?? '' }}
                             </div>
                         </div>
                         <div class="w-1/2 pl-4">
@@ -100,8 +105,8 @@
                                             <div class="text-gray-600">{{ $item->description }}</div>
                                         </td>
                                         <td class="py-3 px-4 text-sm text-gray-800 text-center">{{ $item->quantity }}</td>
-                                        <td class="py-3 px-4 text-sm text-gray-800 text-right">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
-                                        <td class="py-3 px-4 text-sm font-medium text-gray-900 text-right">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
+                                        <td class="py-3 px-4 text-sm text-gray-800 text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
+                                        <td class="py-3 px-4 text-sm font-medium text-gray-900 text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -115,12 +120,12 @@
                                 <div class="space-y-3">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600 font-medium">Subtotal</span>
-                                        <span class="text-gray-900 font-bold">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($estimate->subtotal, 2) }}</span>
+                                        <span class="text-gray-900 font-bold">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->subtotal, 2) }}</span>
                                     </div>
                                     @if($estimate->tax > 0)
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-600 font-medium">Tax ({{ $estimate->tax }}%)</span>
-                                            <span class="text-gray-900 font-bold">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format(($estimate->subtotal * $estimate->tax / 100), 2) }}</span>
+                                            <span class="text-gray-900 font-bold">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format(($estimate->subtotal * $estimate->tax / 100), 2) }}</span>
                                         </div>
                                     @endif
                                     @if($estimate->discount > 0)
@@ -134,7 +139,7 @@
                                                 @endif
                                             </span>
                                             <span class="text-red-600 font-bold">
-                                                -{{ $globalSettings['currency_symbol'] ?? '$' }}
+                                                -{{ $settings['currency_symbol'] ?? '$' }}
                                                 @if($estimate->discount_type == 'percent')
                                                     {{ number_format(($estimate->subtotal * $estimate->discount / 100), 2) }}
                                                 @else
@@ -145,7 +150,7 @@
                                     @endif
                                     <div class="border-t border-gray-200 my-3 pt-3 flex justify-between items-center">
                                         <span class="text-base font-bold text-gray-900">Total Amount</span>
-                                        <span class="text-xl font-bold text-indigo-600">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($estimate->total_amount, 2) }}</span>
+                                        <span class="text-xl font-bold text-indigo-600">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->total_amount, 2) }}</span>
                                     </div>
                                 </div>
                             </div>

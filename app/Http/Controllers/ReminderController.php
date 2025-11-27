@@ -3,11 +3,98 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reminder;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ReminderController extends Controller
 {
+    public function create()
+    {
+        $branches = [];
+        if (Auth::user()->isSuperAdmin()) {
+            $branches = Branch::all();
+        }
+        return view('reminders.create', compact('branches'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'reminder_date' => 'required|date',
+            'type' => 'required|string|in:custom,invoice,project,estimate,payroll,expense',
+            'priority' => 'required|string|in:low,medium,high',
+            'is_recurring' => 'boolean',
+            'frequency' => 'nullable|required_if:is_recurring,true|string|in:daily,weekly,monthly,yearly',
+            'branch_id' => 'nullable|exists:branches,id',
+        ]);
+
+        $validated['user_id'] = Auth::id();
+        $validated['status'] = 'pending';
+        
+        if (!Auth::user()->isSuperAdmin() && Auth::user()->branch_id) {
+            $validated['branch_id'] = Auth::user()->branch_id;
+        }
+        
+        if (!$request->has('is_recurring')) {
+            $validated['is_recurring'] = false;
+            $validated['frequency'] = null;
+        }
+        
+        Reminder::create($validated);
+
+        return redirect()->route('reminders.index')->with('success', 'Reminder created successfully.');
+    }
+
+    public function show(Reminder $reminder)
+    {
+        return redirect()->route('reminders.edit', $reminder);
+    }
+
+    public function edit(Reminder $reminder)
+    {
+        if ($reminder->user_id !== Auth::id() && !Auth::user()->isSuperAdmin()) {
+            abort(403);
+        }
+
+        $branches = [];
+        if (Auth::user()->isSuperAdmin()) {
+            $branches = Branch::all();
+        }
+
+        return view('reminders.edit', compact('reminder', 'branches'));
+    }
+
+    public function update(Request $request, Reminder $reminder)
+    {
+        if ($reminder->user_id !== Auth::id() && !Auth::user()->isSuperAdmin()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'reminder_date' => 'required|date',
+            'type' => 'required|string|in:custom,invoice,project,estimate,payroll,expense',
+            'priority' => 'required|string|in:low,medium,high',
+            'status' => 'required|string|in:pending,completed,dismissed',
+            'is_recurring' => 'boolean',
+            'frequency' => 'nullable|required_if:is_recurring,true|string|in:daily,weekly,monthly,yearly',
+            'branch_id' => 'nullable|exists:branches,id',
+        ]);
+
+        if (!$request->has('is_recurring')) {
+            $validated['is_recurring'] = false;
+            $validated['frequency'] = null;
+        }
+
+        $reminder->update($validated);
+
+        return redirect()->route('reminders.index')->with('success', 'Reminder updated successfully.');
+    }
+
     public function index(Request $request)
     {
         $query = Reminder::where('user_id', Auth::id());
@@ -22,6 +109,15 @@ class ReminderController extends Controller
             $query->where('type', $request->type);
         }
 
+        // Search Filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
         $reminders = $query->orderBy('reminder_date', 'asc')->paginate(10);
         
         // Counts for tabs
@@ -30,61 +126,6 @@ class ReminderController extends Controller
         $completedCount = Reminder::where('user_id', Auth::id())->where('status', 'completed')->count();
 
         return view('reminders.index', compact('reminders', 'upcomingCount', 'overdueCount', 'completedCount'));
-    }
-
-    public function create()
-    {
-        return view('reminders.create');
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'reminder_date' => 'required|date',
-            'type' => 'required|in:invoice,project,estimate,payroll,custom,expense',
-            'priority' => 'required|in:high,medium,low',
-            'is_recurring' => 'nullable|boolean',
-            'frequency' => 'nullable|required_if:is_recurring,1|in:daily,weekly,monthly,yearly',
-        ]);
-
-        $validated['user_id'] = Auth::id();
-        $validated['status'] = 'pending';
-
-        Reminder::create($validated);
-
-        return redirect()->route('reminders.index')->with('success', 'Reminder created successfully.');
-    }
-
-    public function edit(Reminder $reminder)
-    {
-        if ($reminder->user_id !== Auth::id()) {
-            abort(403);
-        }
-        return view('reminders.edit', compact('reminder'));
-    }
-
-    public function update(Request $request, Reminder $reminder)
-    {
-        if ($reminder->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'reminder_date' => 'required|date',
-            'type' => 'required|in:invoice,project,estimate,payroll,custom,expense',
-            'priority' => 'required|in:high,medium,low',
-            'status' => 'required|in:pending,completed,dismissed',
-            'is_recurring' => 'nullable|boolean',
-            'frequency' => 'nullable|required_if:is_recurring,1|in:daily,weekly,monthly,yearly',
-        ]);
-
-        $reminder->update($validated);
-
-        return redirect()->route('reminders.index')->with('success', 'Reminder updated successfully.');
     }
 
     public function destroy(Reminder $reminder)

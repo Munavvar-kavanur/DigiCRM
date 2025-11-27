@@ -4,18 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User; // Added for the user relationship
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\BelongsToBranch;
 
 class Reminder extends Model
 {
+    use HasFactory, BelongsToBranch;
+
     protected $fillable = [
         'user_id',
         'title',
         'description',
         'reminder_date',
-        'type',
-        'related_id',
-        'related_type',
         'status',
+        'related_model',
+        'related_id',
+        'expense_type',
+        'branch_id',
+        'type',
         'priority',
         'is_recurring',
         'frequency',

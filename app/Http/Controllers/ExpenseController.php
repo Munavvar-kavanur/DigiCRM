@@ -9,7 +9,7 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Expense::with('user', 'category');
+        $query = Expense::with(['user', 'category', 'branch.settings']);
 
         // Filters
         if ($request->has('search')) {
@@ -37,24 +37,35 @@ class ExpenseController extends Controller
             $query->whereDate('date', '<=', $request->date_to);
         }
 
+        // Branch Filter (Super Admin)
+        if (auth()->user()->isSuperAdmin() && $request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
+
         $expenses = $query->latest('date')->paginate(10);
         $categories = \App\Models\ExpenseCategory::all();
+        $branches = \App\Models\Branch::orderBy('name')->get();
 
         // Stats
-        $totalExpenses = Expense::sum('amount');
-        $pendingCount = Expense::where('status', 'pending')->count();
-        $thisMonthExpenses = Expense::whereMonth('date', now()->month)->sum('amount');
+        $statsQuery = clone $query;
+        // Remove pagination for stats
+        $statsExpenses = $statsQuery->get();
+        
+        $totalExpenses = $statsExpenses->sum('amount');
+        $pendingCount = $statsExpenses->where('status', 'pending')->count();
+        $thisMonthExpenses = $statsExpenses->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
 
         $currency = \App\Models\Setting::get('currency_symbol', '$');
 
-        return view('expenses.index', compact('expenses', 'categories', 'totalExpenses', 'pendingCount', 'thisMonthExpenses', 'currency'));
+        return view('expenses.index', compact('expenses', 'categories', 'totalExpenses', 'pendingCount', 'thisMonthExpenses', 'currency', 'branches'));
     }
 
     public function create()
     {
         $categories = \App\Models\ExpenseCategory::all();
         $currency = \App\Models\Setting::get('currency_symbol', '$');
-        return view('expenses.create', compact('categories', 'currency'));
+        $branches = \App\Models\Branch::orderBy('name')->get();
+        return view('expenses.create', compact('categories', 'currency', 'branches'));
     }
 
     public function store(Request $request)
@@ -73,10 +84,15 @@ class ExpenseController extends Controller
             'reference' => 'nullable|string|max:255',
             'receipt' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
             'status' => 'required|in:pending,approved,rejected',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $validated['user_id'] = auth()->id();
         $validated['is_recurring'] = $request->has('is_recurring');
+
+        if (auth()->user()->isSuperAdmin() && $request->filled('branch_id')) {
+            $validated['branch_id'] = $request->branch_id;
+        }
 
         if ($request->hasFile('receipt')) {
             $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
@@ -97,7 +113,8 @@ class ExpenseController extends Controller
     {
         $categories = \App\Models\ExpenseCategory::all();
         $currency = \App\Models\Setting::get('currency_symbol', '$');
-        return view('expenses.edit', compact('expense', 'categories', 'currency'));
+        $branches = \App\Models\Branch::orderBy('name')->get();
+        return view('expenses.edit', compact('expense', 'categories', 'currency', 'branches'));
     }
 
     public function update(Request $request, Expense $expense)
@@ -116,9 +133,14 @@ class ExpenseController extends Controller
             'reference' => 'nullable|string|max:255',
             'receipt' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
             'status' => 'required|in:pending,approved,rejected',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $validated['is_recurring'] = $request->has('is_recurring');
+
+        if (auth()->user()->isSuperAdmin() && $request->filled('branch_id')) {
+            $validated['branch_id'] = $request->branch_id;
+        }
 
         if ($request->hasFile('receipt')) {
             // Delete old receipt if exists

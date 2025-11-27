@@ -92,6 +92,40 @@
 
                         <div class="border-t border-gray-100 dark:border-gray-700"></div>
 
+                        <!-- Branch & Role Assignment (Super Admin Only) -->
+                        @if(auth()->user()->isSuperAdmin())
+                            <section class="relative">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Branch & Role</h3>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <!-- Branch -->
+                                    <div class="group">
+                                        <x-input-label for="branch_id" :value="__('Assign Branch')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-teal-600 dark:group-focus-within:text-teal-400 transition-colors" />
+                                        <div class="relative">
+                                            <select id="branch_id" name="branch_id" class="block w-full pl-3 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-900 focus:border-teal-500 focus:ring-teal-500 rounded-md shadow-sm transition-all">
+                                                <option value="">Select Branch</option>
+                                                @foreach($branches as $branch)
+                                                    <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <x-input-error :messages="$errors->get('branch_id')" class="mt-2" />
+                                    </div>
+
+                                    <!-- Role Selection Removed -->
+                                </div>
+                            </section>
+
+                            <div class="border-t border-gray-100 dark:border-gray-700"></div>
+                        @endif
+
                         <!-- Employment Details Section -->
                         <section class="relative">
                             <div class="flex items-center gap-3 mb-6">

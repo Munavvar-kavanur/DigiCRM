@@ -45,6 +45,39 @@
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                @if(auth()->user()->isSuperAdmin())
+                                    <div class="group md:col-span-2">
+                                        <x-input-label for="branch_id" :value="__('Branch')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" />
+                                        <div class="relative">
+                                            <select id="branch_id" name="branch_id" class="block w-full pl-3 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-900 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm transition-all">
+                                                <option value="">Select Branch</option>
+                                                @foreach($branches as $branch)
+                                                    <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <x-input-error :messages="$errors->get('branch_id')" class="mt-2" />
+                                    </div>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            const branchCurrencies = @json($branches->pluck('currency', 'id'));
+                                            const branchSelect = document.getElementById('branch_id');
+                                            const currencyDisplay = document.getElementById('currency-display');
+                                            
+                                            if (branchSelect && currencyDisplay) {
+                                                branchSelect.addEventListener('change', function() {
+                                                    const branchId = this.value;
+                                                    if (branchId && branchCurrencies[branchId]) {
+                                                        currencyDisplay.textContent = branchCurrencies[branchId];
+                                                    } else {
+                                                        currencyDisplay.textContent = '{{ $settings['currency_symbol'] ?? '$' }}';
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    </script>
+                                @endif
+
                                 <!-- Title -->
                                 <div class="group md:col-span-2">
                                     <x-input-label for="title" :value="__('Title')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" />
@@ -64,7 +97,7 @@
                                     <x-input-label for="amount" :value="__('Amount')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" />
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span class="text-gray-500 font-bold">{{ $currency }}</span>
+                                            <span id="currency-display" class="text-gray-500 font-bold">{{ $currency }}</span>
                                         </div>
                                         <x-text-input id="amount" class="block w-full pl-8 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-900 transition-all" type="number" step="0.01" name="amount" :value="old('amount')" required />
                                     </div>

@@ -9,6 +9,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $settings = \App\Models\Setting::getAll();
 
         // --- KPIs ---
         $totalClients = \App\Models\Client::count();
@@ -101,6 +102,43 @@ class DashboardController extends Controller
         $recentInvoices = \App\Models\Invoice::latest()->take(5)->get();
         $recentExpenses = \App\Models\Expense::latest()->take(5)->get();
 
+        // --- Branch Analytics (Super Admin Only) ---
+        $branchAnalytics = [];
+        $branchRevenueLabels = [];
+        $branchRevenueData = [];
+
+        if ($user->isSuperAdmin()) {
+            $branches = \App\Models\Branch::withCount(['clients', 'projects' => function($q) {
+                $q->where('status', 'in_progress');
+            }])->get();
+
+            foreach ($branches as $branch) {
+                // Calculate Revenue (Paid Invoices)
+                $revenue = \App\Models\Invoice::withoutGlobalScope(\App\Models\Scopes\BranchScope::class)
+                    ->where('branch_id', $branch->id)
+                    ->where('status', 'paid')
+                    ->sum('total_amount');
+
+                // Calculate Outstanding (Unpaid/Overdue)
+                $outstanding = \App\Models\Invoice::withoutGlobalScope(\App\Models\Scopes\BranchScope::class)
+                    ->where('branch_id', $branch->id)
+                    ->where('status', '!=', 'paid')
+                    ->sum('total_amount');
+
+                $branchAnalytics[] = [
+                    'name' => $branch->name,
+                    'code' => $branch->code,
+                    'clients_count' => $branch->clients_count,
+                    'active_projects_count' => $branch->projects_count,
+                    'revenue' => $revenue,
+                    'outstanding' => $outstanding,
+                ];
+
+                $branchRevenueLabels[] = $branch->code ?? $branch->name;
+                $branchRevenueData[] = $revenue;
+            }
+        }
+
         return view('dashboard', compact(
             'totalClients', 'newClientsThisMonth',
             'ongoingProjects', 'projectsDueThisWeek',
@@ -115,7 +153,12 @@ class DashboardController extends Controller
             'expenseCategoryLabels', 'expenseCategoryData',
             'upcomingReminders', 'overdueReminders',
             'overdueInvoices', 'projectsDueSoon',
-            'recentClients', 'recentProjects', 'recentInvoices', 'recentExpenses'
+            'recentClients', 'recentProjects', 'recentInvoices', 'recentExpenses',
+            'upcomingReminders', 'overdueReminders',
+            'overdueInvoices', 'projectsDueSoon',
+            'recentClients', 'recentProjects', 'recentInvoices', 'recentExpenses',
+            'branchAnalytics', 'branchRevenueLabels', 'branchRevenueData',
+            'settings'
         ));
     }
 }

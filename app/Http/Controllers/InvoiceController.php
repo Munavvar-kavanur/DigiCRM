@@ -11,7 +11,7 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Invoice::with(['client', 'project']);
+        $query = Invoice::with(['client', 'project', 'branch.settings']);
 
         // Search
         if ($request->has('search')) {
@@ -33,6 +33,11 @@ class InvoiceController extends Controller
         if ($request->has('client_id') && $request->client_id != '') {
             $query->where('client_id', $request->client_id);
         }
+        
+        // Branch Filter (Super Admin)
+        if ($request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         // Date Filter
         if ($request->has('date_from')) {
@@ -44,6 +49,7 @@ class InvoiceController extends Controller
 
         $invoices = $query->latest('issue_date')->paginate(10);
         $clients = Client::orderBy('name')->get();
+        $branches = \App\Models\Branch::orderBy('name')->get();
 
         // Stats
         $totalInvoices = Invoice::count();
@@ -56,28 +62,35 @@ class InvoiceController extends Controller
 
         $currency = \App\Models\Setting::get('currency_symbol', '$');
 
-        return view('invoices.index', compact('invoices', 'clients', 'totalInvoices', 'paidInvoices', 'unpaidInvoices', 'totalAmount', 'receivedAmount', 'outstandingAmount', 'currency'));
+        return view('invoices.index', compact('invoices', 'clients', 'branches', 'totalInvoices', 'paidInvoices', 'unpaidInvoices', 'totalAmount', 'receivedAmount', 'outstandingAmount', 'currency'));
     }
 
     public function create()
     {
-        $clients = Client::where('status', 'active')->get();
-        $projects = Project::where('status', '!=', 'completed')->get();
+        if (auth()->user()->isSuperAdmin()) {
+            $clients = request()->old('branch_id') 
+                ? Client::where('status', 'active')->where('branch_id', request()->old('branch_id'))->get()
+                : collect();
+        } else {
+            $clients = Client::where('status', 'active')->where('branch_id', auth()->user()->branch_id)->get();
+        }
+        $projects = request()->old('client_id')
+            ? Project::where('status', '!=', 'completed')->where('client_id', request()->old('client_id'))->get()
+            : collect();
+        $branches = \App\Models\Branch::all();
         
-        // Generate next invoice number for pre-filling
-        $latestInvoice = Invoice::latest()->first();
-        $nextId = $latestInvoice ? $latestInvoice->id + 1 : 1;
-        $nextInvoiceNumber = 'INV-' . date('Y') . '-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-        
-        return view('invoices.create', compact('clients', 'projects', 'nextInvoiceNumber'));
+        $settings = \App\Models\Setting::getAll();
+
+        return view('invoices.create', compact('clients', 'projects', 'branches', 'settings'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'invoice_number' => 'required|string|unique:invoices,invoice_number',
+            'invoice_number' => 'nullable|string|unique:invoices,invoice_number',
             'client_id' => 'required|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'issue_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:issue_date',
             'status' => 'required|in:draft,sent,paid,overdue',
@@ -115,25 +128,69 @@ class InvoiceController extends Controller
         $grand_total = $subtotal + $taxAmount - $discountAmount;
         $balance_due = $grand_total; // Initially full amount is due
 
-        $invoice = Invoice::create([
-            'invoice_number' => $request->invoice_number,
-            'client_id' => $request->client_id,
-            'project_id' => $request->project_id,
-            'issue_date' => $request->issue_date,
-            'due_date' => $request->due_date,
-            'status' => $request->status,
+        // Generate Invoice Number if not provided
+        $invoiceNumber = $request->input('invoice_number');
+        if (empty($invoiceNumber)) {
+            $branchId = $request->input('branch_id');
+            if (!$branchId && !auth()->user()->isSuperAdmin()) {
+                 $branchId = auth()->user()->branch_id;
+            }
+            
+            $branchCode = 'GEN'; // Default if no branch
+            if ($branchId) {
+                $branch = \App\Models\Branch::find($branchId);
+                if ($branch && $branch->code) {
+                    $branchCode = $branch->code;
+                }
+            }
+
+            // Format: INV-{BRANCH_CODE}-{SEQUENCE}
+            $prefix = 'INV-' . $branchCode . '-';
+            
+            // Find latest invoice for this branch to get sequence
+            $latestInvoice = \App\Models\Invoice::where('invoice_number', 'like', $prefix . '%')
+                ->orderBy('id', 'desc')
+                ->first();
+            
+            $nextSequence = 1;
+            if ($latestInvoice) {
+                // Extract sequence
+                $parts = explode('-', $latestInvoice->invoice_number);
+                $lastSeq = end($parts);
+                if (is_numeric($lastSeq)) {
+                    $nextSequence = (int)$lastSeq + 1;
+                }
+            }
+            
+            $invoiceNumber = $prefix . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
+        }
+
+        $invoiceData = [
+            'invoice_number' => $invoiceNumber,
+            'client_id' => $validated['client_id'],
+            'project_id' => $validated['project_id'],
+            'branch_id' => $request->branch_id,
+            'issue_date' => $validated['issue_date'],
+            'due_date' => $validated['due_date'],
+            'status' => $validated['status'],
             'subtotal' => $subtotal,
             'tax' => $taxRate,
             'discount' => $discountValue,
             'discount_type' => $discountType,
             'grand_total' => $grand_total,
             'total_amount' => $grand_total, // Keep for backward compatibility if needed
-            'balance_due' => $balance_due,
-            'notes' => $request->notes,
-            'terms' => $request->terms,
-            'is_recurring' => $request->is_recurring ?? false,
-            'recurring_frequency' => $request->recurring_frequency,
-        ]);
+            'balance_due' => $grand_total, // Assuming full amount is due
+            'notes' => $request->input('notes'),
+            'terms' => $request->input('terms'),
+            'is_recurring' => $request->has('is_recurring'),
+            'recurring_frequency' => $request->input('recurring_frequency'),
+        ];
+
+        if (auth()->user()->isSuperAdmin() && $request->has('branch_id')) {
+            $invoiceData['branch_id'] = $request->branch_id;
+        }
+
+        $invoice = Invoice::create($invoiceData);
 
         foreach ($request->items as $item) {
             $invoice->items()->create([
@@ -150,15 +207,18 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $invoice->load(['client', 'project', 'items', 'payments']);
-        return view('invoices.show', compact('invoice'));
+        $invoice->load(['client', 'project', 'items', 'payments', 'branch']);
+        $settings = \App\Models\Setting::getAll($invoice->branch_id);
+        return view('invoices.show', compact('invoice', 'settings'));
     }
 
     public function edit(Invoice $invoice)
     {
-        $clients = Client::where('status', 'active')->get();
-        $projects = Project::where('status', '!=', 'completed')->get();
-        return view('invoices.edit', compact('invoice', 'clients', 'projects'));
+        $clients = Client::where('status', 'active')->where('branch_id', $invoice->branch_id)->get();
+        $projects = Project::where('status', '!=', 'completed')->where('client_id', $invoice->client_id)->get();
+        $branches = \App\Models\Branch::all();
+        $settings = \App\Models\Setting::getAll($invoice->branch_id);
+        return view('invoices.edit', compact('invoice', 'clients', 'projects', 'branches', 'settings'));
     }
 
     public function update(Request $request, Invoice $invoice)
@@ -167,6 +227,7 @@ class InvoiceController extends Controller
             'invoice_number' => 'required|string|unique:invoices,invoice_number,' . $invoice->id,
             'client_id' => 'required|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'issue_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:issue_date',
             'status' => 'required|in:draft,sent,paid,overdue',
@@ -205,7 +266,7 @@ class InvoiceController extends Controller
         $total_paid = $invoice->payments()->sum('amount');
         $balance_due = $grand_total - $total_paid;
 
-        $invoice->update([
+        $updateData = [
             'invoice_number' => $request->invoice_number,
             'client_id' => $request->client_id,
             'project_id' => $request->project_id,
@@ -221,7 +282,13 @@ class InvoiceController extends Controller
             'balance_due' => $balance_due,
             'notes' => $request->notes,
             'terms' => $request->terms,
-        ]);
+        ];
+
+        if (auth()->user()->isSuperAdmin() && $request->has('branch_id')) {
+            $updateData['branch_id'] = $request->branch_id;
+        }
+
+        $invoice->update($updateData);
 
         // Sync items (delete all and recreate for simplicity, or update smart)
         $invoice->items()->delete();
@@ -247,7 +314,8 @@ class InvoiceController extends Controller
     public function downloadPdf(Invoice $invoice)
     {
         $invoice->load(['client', 'project', 'items']);
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.pdf', compact('invoice'));
+        $settings = \App\Models\Setting::getAll($invoice->branch_id);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.pdf', compact('invoice', 'settings'));
         return $pdf->download('invoice-' . $invoice->invoice_number . '.pdf');
     }
 }

@@ -1,7 +1,12 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BranchController;
 use Illuminate\Support\Facades\Route;
+
+
+
+
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -15,6 +20,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Branch Routes (Super Admin only)
+    Route::middleware(['role:super_admin'])->resource('branches', BranchController::class);
+
+    // Dynamic Dropdown Data Routes
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/branches/{branch}/clients', [\App\Http\Controllers\BranchDataController::class, 'getClients'])->name('branches.clients');
+        Route::get('/branches/{branch}/projects', [\App\Http\Controllers\BranchDataController::class, 'getProjects'])->name('branches.projects');
+        Route::get('/branches/{branch}/employees', [\App\Http\Controllers\BranchDataController::class, 'getEmployees'])->name('branches.employees');
+        Route::get('/clients/{client}/projects', [\App\Http\Controllers\ClientController::class, 'getProjects'])->name('clients.projects');
+    });
+
 
     Route::get('/clients/create', \App\Livewire\Clients\ClientForm::class)->name('clients.create');
     Route::get('/clients/{client}/edit', \App\Livewire\Clients\ClientForm::class)->name('clients.edit');
@@ -30,6 +47,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/global-search', [\App\Http\Controllers\GlobalSearchController::class, 'search'])->name('global.search');
     Route::get('settings', [\App\Http\Controllers\SettingController::class, 'edit'])->name('settings.edit');
     Route::patch('settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
+    
+    // User Management (Settings)
+    Route::middleware(['role:super_admin'])->resource('settings/users', \App\Http\Controllers\UserController::class, ['as' => 'settings']);
+
     Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
     Route::post('expense-categories', [\App\Http\Controllers\ExpenseCategoryController::class, 'store'])->name('expense-categories.store');
     Route::delete('expense-categories/{expenseCategory}', [\App\Http\Controllers\ExpenseCategoryController::class, 'destroy'])->name('expense-categories.destroy');

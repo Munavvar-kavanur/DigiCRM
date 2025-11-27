@@ -68,33 +68,43 @@
                     </div>
 
                     <!-- Filters -->
-                    <div class="mb-6 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <form action="{{ route('reminders.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <x-input-label for="status" :value="__('Status')" />
-                                <select name="status" id="status" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                    <div class="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                        <form action="{{ route('reminders.index') }}" method="GET" class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                            <!-- Search -->
+                            <div class="relative w-full md:w-1/3">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input type="text" name="search" id="search" 
+                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out" 
+                                    placeholder="Search reminders..." 
+                                    value="{{ request('search') }}">
+                            </div>
+
+                            <!-- Filters -->
+                            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                                <select name="status" id="status" onchange="this.form.submit()" class="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">All Statuses</option>
                                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                                     <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                                     <option value="dismissed" {{ request('status') == 'dismissed' ? 'selected' : '' }}>Dismissed</option>
                                 </select>
-                            </div>
-                            <div>
-                                <x-input-label for="type" :value="__('Type')" />
-                                <select name="type" id="type" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+
+                                <select name="type" id="type" onchange="this.form.submit()" class="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">All Types</option>
-                                    <option value="invoice" {{ request('type') == 'invoice' ? 'selected' : '' }}>Invoice</option>
-                                    <option value="project" {{ request('type') == 'project' ? 'selected' : '' }}>Project</option>
-                                    <option value="estimate" {{ request('type') == 'estimate' ? 'selected' : '' }}>Estimate</option>
-                                    <option value="payroll" {{ request('type') == 'payroll' ? 'selected' : '' }}>Payroll</option>
-                                    <option value="expense" {{ request('type') == 'expense' ? 'selected' : '' }}>Expense</option>
-                                    <option value="custom" {{ request('type') == 'custom' ? 'selected' : '' }}>Custom</option>
+                                    <option value="call" {{ request('type') == 'call' ? 'selected' : '' }}>Call</option>
+                                    <option value="meeting" {{ request('type') == 'meeting' ? 'selected' : '' }}>Meeting</option>
+                                    <option value="email" {{ request('type') == 'email' ? 'selected' : '' }}>Email</option>
+                                    <option value="deadline" {{ request('type') == 'deadline' ? 'selected' : '' }}>Deadline</option>
                                 </select>
-                            </div>
-                            <div class="flex items-end">
-                                <x-primary-button class="w-full justify-center">
-                                    {{ __('Filter') }}
-                                </x-primary-button>
+
+                                @if(request('search') || request('status') || request('type'))
+                                    <a href="{{ route('reminders.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                        Clear
+                                    </a>
+                                @endif
                             </div>
                         </form>
                     </div>
@@ -105,27 +115,26 @@
                         </div>
                     @endif
 
-                    <!-- Table -->
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50/50 dark:bg-gray-700/50">
+                            <thead class="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Due Date</th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                @forelse ($reminders as $reminder)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
+                                @forelse($reminders as $reminder)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td class="px-6 py-4">
-                                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $reminder->title }}</div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-xs">{{ $reminder->description }}</div>
+                                            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $reminder->title }}</div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ Str::limit($reminder->description, 50) }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                                                 {{ ucfirst($reminder->type) }}
                                             </span>
                                         </td>

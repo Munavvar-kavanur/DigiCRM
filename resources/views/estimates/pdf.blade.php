@@ -187,10 +187,10 @@
         <table class="header-table">
             <tr>
                 <td class="logo-container">
-                    @if(isset($globalSettings['invoice_logo_dark']))
-                        <img src="{{ public_path('storage/' . ($globalSettings['invoice_logo_light'] ?? $globalSettings['invoice_logo_dark'])) }}" alt="Logo">
+                    @if(isset($settings['invoice_logo_dark']))
+                        <img src="{{ public_path('storage/' . ($settings['invoice_logo_light'] ?? $settings['invoice_logo_dark'])) }}" alt="Logo">
                     @else
-                        <h2 style="margin:0; font-size: 24px;">{{ $globalSettings['company_name'] ?? 'COMPANY' }}</h2>
+                        <h2 style="margin:0; font-size: 24px;">{{ $settings['company_name'] ?? 'COMPANY' }}</h2>
                     @endif
                 </td>
                 <td style="text-align: right;">
@@ -220,13 +220,13 @@
                 <td>
                     <div class="section-title">From</div>
                     <div class="address-block">
-                        <strong>{{ $globalSettings['company_name'] ?? 'My Company' }}</strong><br>
-                        {!! nl2br(e($globalSettings['company_address'] ?? '')) !!}<br>
-                        {{ $globalSettings['company_email'] ?? '' }}<br>
-                        {{ $globalSettings['company_phone'] ?? '' }}<br>
-                        {{ $globalSettings['company_website'] ?? '' }}
-                        @if(isset($globalSettings['tax_id']))
-                            <br>Tax ID: {{ $globalSettings['tax_id'] }}
+                        <strong>{{ $settings['company_name'] ?? 'My Company' }}</strong><br>
+                        {!! nl2br(e($settings['company_address'] ?? '')) !!}<br>
+                        {{ $settings['company_email'] ?? '' }}<br>
+                        {{ $settings['company_phone'] ?? '' }}<br>
+                        {{ $settings['company_website'] ?? '' }}
+                        @if(isset($settings['tax_id']))
+                            <br>Tax ID: {{ $settings['tax_id'] }}
                         @endif
                     </div>
                 </td>
@@ -267,8 +267,8 @@
                             <div style="color: #4a5568;">{{ $item->description }}</div>
                         </td>
                         <td class="text-right">{{ $item->quantity }}</td>
-                        <td class="text-right">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
-                        <td class="text-right" style="font-weight: bold;">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
+                        <td class="text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
+                        <td class="text-right" style="font-weight: bold;">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -277,12 +277,12 @@
         <table class="totals-table">
             <tr>
                 <td class="label">Subtotal</td>
-                <td class="amount">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($estimate->subtotal, 2) }}</td>
+                <td class="amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->subtotal, 2) }}</td>
             </tr>
             @if($estimate->tax > 0)
             <tr>
                 <td class="label">Tax ({{ $estimate->tax }}%)</td>
-                <td class="amount">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format(($estimate->subtotal * $estimate->tax / 100), 2) }}</td>
+                <td class="amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format(($estimate->subtotal * $estimate->tax / 100), 2) }}</td>
             </tr>
             @endif
             @if($estimate->discount > 0)
@@ -296,7 +296,7 @@
                     @endif
                 </td>
                 <td class="amount" style="color: #e53e3e;">
-                    -{{ $globalSettings['currency_symbol'] ?? '$' }}
+                    -{{ $settings['currency_symbol'] ?? '$' }}
                     @if($estimate->discount_type == 'percent')
                         {{ number_format(($estimate->subtotal * $estimate->discount / 100), 2) }}
                     @else
@@ -307,7 +307,7 @@
             @endif
             <tr class="grand-total-row">
                 <td class="grand-total-label">Total Amount</td>
-                <td class="grand-total-amount">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($estimate->total_amount, 2) }}</td>
+                <td class="grand-total-amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->total_amount, 2) }}</td>
             </tr>
         </table>
 
@@ -320,7 +320,7 @@
 
         <div class="footer">
             <p>Thank you for your business!</p>
-            <p>{{ $globalSettings['company_name'] ?? '' }} &bull; {{ $globalSettings['company_email'] ?? '' }}</p>
+            <p>{{ $settings['company_name'] ?? '' }} &bull; {{ $settings['company_email'] ?? '' }}</p>
         </div>
     </div>
 </body>

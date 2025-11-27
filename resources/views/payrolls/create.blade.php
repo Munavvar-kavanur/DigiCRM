@@ -97,7 +97,7 @@
                                     <x-input-label for="base_salary" :value="__('Base Salary')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-emerald-600 dark:group-focus-within:text-emerald-400 transition-colors" />
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span class="text-gray-500 font-bold">$</span>
+                                            <span class="text-gray-500 font-bold">{{ auth()->user()->branch ? auth()->user()->branch->currency : '$' }}</span>
                                         </div>
                                         <x-text-input id="base_salary" class="block w-full pl-8 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-900 focus:border-emerald-500 focus:ring-emerald-500 transition-all" type="number" step="0.01" name="base_salary" x-model="baseSalary" required />
                                     </div>
@@ -137,7 +137,7 @@
                                     <x-input-label for="net_salary" :value="__('Net Salary')" class="mb-2 text-gray-600 dark:text-gray-400" />
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">$</span>
+                                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">{{ auth()->user()->branch ? auth()->user()->branch->currency : '$' }}</span>
                                         </div>
                                         <div class="block w-full pl-8 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md text-emerald-700 dark:text-emerald-300 font-bold text-lg" x-text="netSalary.toFixed(2)"></div>
                                     </div>

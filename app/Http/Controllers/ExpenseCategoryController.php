@@ -10,9 +10,27 @@ class ExpenseCategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:expense_categories,name',
+            'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:7', // Hex color
         ]);
+
+        $branchId = null;
+        if (auth()->user()->isSuperAdmin()) {
+            $branchId = session('settings_branch_context') ?: null;
+        } else {
+            $branchId = auth()->user()->branch_id;
+        }
+        
+        // Check uniqueness within branch
+        $exists = ExpenseCategory::where('name', $request->name)
+            ->where('branch_id', $branchId)
+            ->exists();
+            
+        if ($exists) {
+            return back()->withErrors(['name' => 'The name has already been taken for this branch.']);
+        }
+
+        $validated['branch_id'] = $branchId;
 
         ExpenseCategory::create($validated);
 

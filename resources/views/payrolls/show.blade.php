@@ -23,7 +23,14 @@
                     <!-- Header -->
                     <div class="border-b border-gray-200 dark:border-gray-700 pb-6 mb-6 flex justify-between items-start">
                         <div>
-                            <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">Payslip</h1>
+                            <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                                Payslip
+                                @if(auth()->user()->isSuperAdmin() && $payroll->branch)
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 align-middle">
+                                        {{ $payroll->branch->name }}
+                                    </span>
+                                @endif
+                            </h1>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                 For the month of {{ $payroll->salary_month->format('F Y') }}
                             </p>
@@ -64,24 +71,24 @@
                         
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-600 dark:text-gray-300">Base Salary</span>
-                            <span class="font-medium">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payroll->base_salary, 2) }}</span>
+                            <span class="font-medium">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payroll->base_salary, 2) }}</span>
                         </div>
                         
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-600 dark:text-gray-300">Bonus</span>
-                            <span class="font-medium text-green-600 dark:text-green-400">+ {{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payroll->bonus, 2) }}</span>
+                            <span class="font-medium text-green-600 dark:text-green-400">+ {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payroll->bonus, 2) }}</span>
                         </div>
                         
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-gray-600 dark:text-gray-300">Deductions</span>
-                            <span class="font-medium text-red-600 dark:text-red-400">- {{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payroll->deductions, 2) }}</span>
+                            <span class="font-medium text-red-600 dark:text-red-400">- {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payroll->deductions, 2) }}</span>
                         </div>
 
                         <div class="border-t border-gray-200 dark:border-gray-600 my-4"></div>
 
                         <div class="flex justify-between items-center text-xl font-bold">
                             <span>Net Salary</span>
-                            <span class="text-indigo-600 dark:text-indigo-400">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payroll->net_salary, 2) }}</span>
+                            <span class="text-indigo-600 dark:text-indigo-400">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payroll->net_salary, 2) }}</span>
                         </div>
                     </div>
 

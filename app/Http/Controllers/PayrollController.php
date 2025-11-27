@@ -11,10 +11,23 @@ class PayrollController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Payroll::with('user')->latest();
+        $query = Payroll::with(['user', 'branch.settings'])->latest();
 
         if ($request->has('month')) {
             $query->where('salary_month', 'like', $request->month . '%');
+        }
+
+        // Branch Filter (Super Admin)
+        if (auth()->user()->isSuperAdmin() && $request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        // Search Filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
         }
 
         // Calculate stats based on the filtered query
@@ -27,8 +40,11 @@ class PayrollController extends Controller
         $pendingPayroll = $payrollsCollection->where('status', 'pending')->sum('net_salary');
 
         $payrolls = $query->paginate(10);
+        $branches = \App\Models\Branch::orderBy('name')->get();
 
-        return view('payrolls.index', compact('payrolls', 'totalPayroll', 'paidPayroll', 'pendingPayroll'));
+        $settings = \App\Models\Setting::getAll();
+
+        return view('payrolls.index', compact('payrolls', 'totalPayroll', 'paidPayroll', 'pendingPayroll', 'settings', 'branches'));
     }
 
     public function create()
@@ -54,6 +70,12 @@ class PayrollController extends Controller
         $validated['deductions'] = $validated['deductions'] ?? 0;
         $validated['net_salary'] = $validated['base_salary'] + $validated['bonus'] - $validated['deductions'];
 
+        // Assign branch based on user
+        $user = User::find($validated['user_id']);
+        if ($user && $user->branch_id) {
+            $validated['branch_id'] = $user->branch_id;
+        }
+
         Payroll::create($validated);
 
         return redirect()->route('payrolls.index')->with('success', 'Payroll created successfully.');
@@ -62,7 +84,8 @@ class PayrollController extends Controller
     public function show(Payroll $payroll)
     {
         $payroll->load('user');
-        return view('payrolls.show', compact('payroll'));
+        $settings = \App\Models\Setting::getAll($payroll->user->branch_id);
+        return view('payrolls.show', compact('payroll', 'settings'));
     }
 
     public function edit(Payroll $payroll)
@@ -101,7 +124,8 @@ class PayrollController extends Controller
     public function downloadPdf(Payroll $payroll)
     {
         $payroll->load('user');
-        $pdf = Pdf::loadView('payrolls.pdf', compact('payroll'));
+        $settings = \App\Models\Setting::getAll($payroll->user->branch_id);
+        $pdf = Pdf::loadView('payrolls.pdf', compact('payroll', 'settings'));
         return $pdf->download('payslip-' . $payroll->id . '.pdf');
     }
 }

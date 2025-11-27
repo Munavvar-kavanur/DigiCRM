@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToBranch;
 
 class Task extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToBranch;
 
     protected $fillable = [
         'project_id',
@@ -17,6 +18,7 @@ class Task extends Model
         'priority',
         'due_date',
         'assigned_to',
+        'branch_id',
     ];
 
     protected $casts = [

@@ -32,7 +32,15 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Cost</p>
                             <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($totalMonthlyCost, 2) }}
+                                @if(request('branch_id'))
+                                    @php
+                                        $selectedBranch = $branches->firstWhere('id', request('branch_id'));
+                                        $currency = $selectedBranch ? $selectedBranch->currency : ($settings['currency_symbol'] ?? '$');
+                                    @endphp
+                                    {{ $currency }}{{ number_format($totalMonthlyCost, 2) }}
+                                @else
+                                    {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($totalMonthlyCost, 2) }}
+                                @endif
                             </p>
                         </div>
                     </div>
@@ -49,7 +57,11 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Average Salary</p>
                             <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($averageSalary, 2) }}
+                                @if(request('branch_id'))
+                                    {{ $currency }}{{ number_format($averageSalary, 2) }}
+                                @else
+                                    {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($averageSalary, 2) }}
+                                @endif
                             </p>
                         </div>
                     </div>
@@ -61,12 +73,44 @@
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Employee List</h3>
                     
-                    <a href="{{ route('employees.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 shadow-sm whitespace-nowrap">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
+                    <a href="{{ route('employees.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                         Add Employee
                     </a>
+                </div>
+                
+                <div class="px-6 pb-4">
+                    <form method="GET" action="{{ route('employees.index') }}" class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <!-- Search -->
+                        <div class="relative w-full md:w-1/3">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" name="search" id="search" 
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out" 
+                                placeholder="Search employees..." 
+                                value="{{ request('search') }}">
+                        </div>
+
+                        <!-- Filters -->
+                        <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                            @if(auth()->user()->isSuperAdmin())
+                                <select name="branch_id" id="branch_id" onchange="this.form.submit()" class="block w-full md:w-48 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-gray-300">
+                                    <option value="">All Branches</option>
+                                    @foreach($branches as $branch)
+                                        <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
+
+                            @if(request('search') || request('branch_id'))
+                                <a href="{{ route('employees.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                    Clear
+                                </a>
+                            @endif
+                        </div>
+                    </form>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -74,6 +118,9 @@
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Employee</th>
+                                @if(auth()->user()->isSuperAdmin())
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Branch</th>
+                                @endif
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role & Type</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Compensation</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined</th>
@@ -94,6 +141,11 @@
                                             </div>
                                         </div>
                                     </td>
+                                    @if(auth()->user()->isSuperAdmin())
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900 dark:text-white">{{ $employee->branch ? $employee->branch->name : 'N/A' }}</div>
+                                        </td>
+                                    @endif
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900 dark:text-gray-100">{{ $employee->job_title ?? 'No Title' }}</div>
                                         @if($employee->employeeType)
@@ -104,7 +156,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-bold text-gray-900 dark:text-gray-100">
-                                            {{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($employee->salary, 2) }}
+                                            {{ $employee->branch ? $employee->branch->currency : ($settings['currency_symbol'] ?? '$') }}{{ number_format($employee->salary, 2) }}
                                         </div>
                                         @if($employee->payrollType)
                                             <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -158,6 +210,9 @@
                                     </td>
                                 </tr>
                             @endforelse
+                        </tbody>
+                    </table>
+                </div>
                 @if($employees->hasPages())
                     <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                         {{ $employees->links() }}

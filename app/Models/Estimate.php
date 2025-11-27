@@ -2,22 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToBranch;
 
 class Estimate extends Model
 {
+    use HasFactory, BelongsToBranch;
+
     protected $fillable = [
-        'estimate_number',
         'client_id',
         'project_id',
         'valid_until',
+        'total_amount',
         'status',
+        'estimate_number',
+        'notes',
+        'discount_type',
+        'discount',
         'subtotal',
         'tax',
-        'discount',
-        'discount_type',
-        'total_amount',
-        'notes',
+        'branch_id',
         'terms',
     ];
 

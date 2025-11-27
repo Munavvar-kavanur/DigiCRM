@@ -127,6 +127,25 @@
                                     </div>
                                     <x-input-error :messages="$errors->get('status')" class="mt-2" />
                                 </div>
+
+                                @if(auth()->user()->isSuperAdmin())
+                                    <!-- Branch -->
+                                    <div class="group">
+                                        <x-input-label for="branch_id" :value="__('Branch')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" />
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg class="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                            </div>
+                                            <select id="branch_id" name="branch_id" class="block w-full pl-10 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-900 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm transition-all">
+                                                <option value="">Select Branch</option>
+                                                @foreach($branches as $branch)
+                                                    <option value="{{ $branch->id }}" {{ old('branch_id', $project->branch_id) == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <x-input-error :messages="$errors->get('branch_id')" class="mt-2" />
+                                    </div>
+                                @endif
                             </div>
                         </section>
 
@@ -163,7 +182,7 @@
                                     <x-input-label for="budget" :value="__('Budget')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" />
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span class="text-gray-400 group-focus-within:text-indigo-500 transition-colors font-bold">{{ \App\Models\Setting::get('currency_symbol', '$') }}</span>
+                                            <span class="text-gray-400 group-focus-within:text-indigo-500 transition-colors font-bold">{{ $project->branch->currency ?? \App\Models\Setting::get('currency_symbol', '$') }}</span>
                                         </div>
                                         <x-text-input id="budget" class="block w-full pl-10 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-900 transition-all" type="number" step="0.01" name="budget" :value="old('budget', $project->budget)" />
                                     </div>
@@ -189,4 +208,39 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const branchSelect = document.getElementById('branch_id');
+            const clientSelect = document.getElementById('client_id');
+
+            if (branchSelect) {
+                branchSelect.addEventListener('change', function() {
+                    const branchId = this.value;
+                    
+                    // Clear current options
+                    if (clientSelect) {
+                        clientSelect.innerHTML = '<option value="">Select Client</option>';
+                        clientSelect.disabled = true;
+                    }
+
+                    if (branchId) {
+                        // Fetch Clients
+                        if (clientSelect) {
+                            fetch(`/branches/${branchId}/clients`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    data.forEach(client => {
+                                        const option = document.createElement('option');
+                                        option.value = client.id;
+                                        option.textContent = client.name;
+                                        clientSelect.appendChild(option);
+                                    });
+                                    clientSelect.disabled = false;
+                                });
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 </x-app-layout>

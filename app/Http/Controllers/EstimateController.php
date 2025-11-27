@@ -11,7 +11,7 @@ class EstimateController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Estimate::with(['client', 'project']);
+        $query = Estimate::with(['client', 'project', 'branch.settings']);
 
         // Search
         if ($request->has('search')) {
@@ -33,6 +33,11 @@ class EstimateController extends Controller
         if ($request->has('client_id') && $request->client_id != '') {
             $query->where('client_id', $request->client_id);
         }
+        
+        // Branch Filter (Super Admin)
+        if ($request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         // Date Filter
         if ($request->has('date_from')) {
@@ -44,6 +49,7 @@ class EstimateController extends Controller
 
         $estimates = $query->latest()->paginate(10);
         $clients = Client::orderBy('name')->get();
+        $branches = \App\Models\Branch::orderBy('name')->get();
 
         // Stats
         $totalEstimates = Estimate::count();
@@ -51,14 +57,23 @@ class EstimateController extends Controller
         $pendingEstimates = Estimate::whereIn('status', ['sent', 'draft'])->count();
         $declinedEstimates = Estimate::where('status', 'rejected')->count();
 
-        return view('estimates.index', compact('estimates', 'clients', 'totalEstimates', 'acceptedEstimates', 'pendingEstimates', 'declinedEstimates'));
+        return view('estimates.index', compact('estimates', 'clients', 'branches', 'totalEstimates', 'acceptedEstimates', 'pendingEstimates', 'declinedEstimates'));
     }
 
     public function create()
     {
-        $clients = Client::where('status', 'active')->get();
-        $projects = Project::where('status', '!=', 'completed')->get();
-        return view('estimates.create', compact('clients', 'projects'));
+        if (auth()->user()->isSuperAdmin()) {
+            $clients = request()->old('branch_id') 
+                ? Client::where('status', 'active')->where('branch_id', request()->old('branch_id'))->get()
+                : collect();
+        } else {
+            $clients = Client::where('status', 'active')->where('branch_id', auth()->user()->branch_id)->get();
+        }
+        $projects = request()->old('client_id')
+            ? Project::where('status', '!=', 'completed')->where('client_id', request()->old('client_id'))->get()
+            : collect();
+        $branches = \App\Models\Branch::all();
+        return view('estimates.create', compact('clients', 'projects', 'branches'));
     }
 
     public function store(Request $request)
@@ -66,6 +81,7 @@ class EstimateController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'valid_until' => 'required|date',
             'status' => 'required|in:draft,sent,accepted,rejected',
             'items' => 'required|array|min:1',
@@ -78,13 +94,44 @@ class EstimateController extends Controller
             'discount_type' => 'required|in:fixed,percent',
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
+            'estimate_number' => 'nullable|string|unique:estimates,estimate_number',
         ]);
 
+        // Generate Estimate Number if not provided
         $estimateNumber = $request->input('estimate_number');
         if (empty($estimateNumber)) {
-            $latestEstimate = Estimate::latest()->first();
-            $nextId = $latestEstimate ? $latestEstimate->id + 1 : 1;
-            $estimateNumber = 'EST-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+            $branchId = $request->input('branch_id');
+            if (!$branchId && !auth()->user()->isSuperAdmin()) {
+                 $branchId = auth()->user()->branch_id;
+            }
+            
+            $branchCode = 'GEN'; // Default if no branch
+            if ($branchId) {
+                $branch = \App\Models\Branch::find($branchId);
+                if ($branch && $branch->code) {
+                    $branchCode = $branch->code;
+                }
+            }
+
+            // Format: EST-{BRANCH_CODE}-{SEQUENCE}
+            $prefix = 'EST-' . $branchCode . '-';
+            
+            // Find latest estimate for this branch to get sequence
+            $latestEstimate = \App\Models\Estimate::where('estimate_number', 'like', $prefix . '%')
+                ->orderBy('id', 'desc')
+                ->first();
+            
+            $nextSequence = 1;
+            if ($latestEstimate) {
+                // Extract sequence
+                $parts = explode('-', $latestEstimate->estimate_number);
+                $lastSeq = end($parts);
+                if (is_numeric($lastSeq)) {
+                    $nextSequence = (int)$lastSeq + 1;
+                }
+            }
+            
+            $estimateNumber = $prefix . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
         }
 
         $subtotal = 0;
@@ -106,7 +153,7 @@ class EstimateController extends Controller
 
         $totalAmount = $subtotal + $taxAmount - $discountAmount;
 
-        $estimate = Estimate::create([
+        $estimateData = [
             'estimate_number' => $estimateNumber,
             'client_id' => $validated['client_id'],
             'project_id' => $validated['project_id'],
@@ -119,7 +166,13 @@ class EstimateController extends Controller
             'total_amount' => $totalAmount,
             'notes' => $request->input('notes'),
             'terms' => $request->input('terms'),
-        ]);
+        ];
+
+        if (auth()->user()->isSuperAdmin() && $request->has('branch_id')) {
+            $estimateData['branch_id'] = $request->branch_id;
+        }
+
+        $estimate = Estimate::create($estimateData);
 
         foreach ($request->items as $item) {
             $lineTotal = $item['quantity'] * $item['unit_price'];
@@ -138,16 +191,19 @@ class EstimateController extends Controller
 
     public function show(Estimate $estimate)
     {
-        $estimate->load('items', 'client', 'project');
-        return view('estimates.show', compact('estimate'));
+        $estimate->load('items', 'client', 'project', 'branch');
+        $settings = \App\Models\Setting::getAll($estimate->branch_id);
+        return view('estimates.show', compact('estimate', 'settings'));
     }
 
     public function edit(Estimate $estimate)
     {
         $estimate->load('items');
-        $clients = Client::where('status', 'active')->get();
-        $projects = Project::where('status', '!=', 'completed')->get();
-        return view('estimates.edit', compact('estimate', 'clients', 'projects'));
+        $clients = Client::where('status', 'active')->where('branch_id', $estimate->branch_id)->get();
+        $projects = Project::where('status', '!=', 'completed')->where('client_id', $estimate->client_id)->get();
+        $branches = \App\Models\Branch::all();
+        $settings = \App\Models\Setting::getAll($estimate->branch_id);
+        return view('estimates.edit', compact('estimate', 'clients', 'projects', 'branches', 'settings'));
     }
 
     public function update(Request $request, Estimate $estimate)
@@ -156,6 +212,7 @@ class EstimateController extends Controller
             'estimate_number' => 'required|string|unique:estimates,estimate_number,' . $estimate->id,
             'client_id' => 'required|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'valid_until' => 'required|date',
             'status' => 'required|in:draft,sent,accepted,rejected',
             'items' => 'required|array|min:1',
@@ -189,7 +246,7 @@ class EstimateController extends Controller
 
         $totalAmount = $subtotal + $taxAmount - $discountAmount;
 
-        $estimate->update([
+        $updateData = [
             'estimate_number' => $validated['estimate_number'],
             'client_id' => $validated['client_id'],
             'project_id' => $validated['project_id'],
@@ -202,7 +259,13 @@ class EstimateController extends Controller
             'total_amount' => $totalAmount,
             'notes' => $request->input('notes'),
             'terms' => $request->input('terms'),
-        ]);
+        ];
+
+        if (auth()->user()->isSuperAdmin() && $request->has('branch_id')) {
+            $updateData['branch_id'] = $request->branch_id;
+        }
+
+        $estimate->update($updateData);
 
         // Delete old items and re-create
         $estimate->items()->delete();
@@ -231,7 +294,8 @@ class EstimateController extends Controller
     public function downloadPdf(Estimate $estimate)
     {
         $estimate->load(['client', 'project', 'items']);
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('estimates.pdf', compact('estimate'));
+        $settings = \App\Models\Setting::getAll($estimate->branch_id);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('estimates.pdf', compact('estimate', 'settings'));
         return $pdf->download('estimate-' . $estimate->estimate_number . '.pdf');
     }
 }

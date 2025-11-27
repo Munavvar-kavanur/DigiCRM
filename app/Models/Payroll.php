@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToBranch;
 
 class Payroll extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToBranch;
 
     protected $fillable = [
         'user_id',
@@ -19,6 +20,7 @@ class Payroll extends Model
         'status',
         'payment_date',
         'notes',
+        'branch_id',
     ];
 
     protected $casts = [

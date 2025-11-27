@@ -98,19 +98,19 @@
             <tbody>
                 <tr>
                     <td>Base Salary</td>
-                    <td class="amount">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payroll->base_salary, 2) }}</td>
+                    <td class="amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payroll->base_salary, 2) }}</td>
                 </tr>
                 <tr>
                     <td>Bonus</td>
-                    <td class="amount text-green">+ {{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payroll->bonus, 2) }}</td>
+                    <td class="amount text-green">+ {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payroll->bonus, 2) }}</td>
                 </tr>
                 <tr>
                     <td>Deductions</td>
-                    <td class="amount text-red">- {{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payroll->deductions, 2) }}</td>
+                    <td class="amount text-red">- {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payroll->deductions, 2) }}</td>
                 </tr>
                 <tr style="background-color: #f3f4f6;">
                     <td><strong>Net Salary</strong></td>
-                    <td class="amount total">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payroll->net_salary, 2) }}</td>
+                    <td class="amount total">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payroll->net_salary, 2) }}</td>
                 </tr>
             </tbody>
         </table>

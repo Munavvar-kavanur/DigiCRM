@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToBranch;
 
 class Expense extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToBranch;
 
     protected $fillable = [
         'title',
@@ -24,6 +25,7 @@ class Expense extends Model
         'status',
         'merchant',
         'reference',
+        'branch_id',
     ];
 
     protected $casts = [

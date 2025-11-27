@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EmployeeType extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\BelongsToBranch;
 
-    protected $fillable = ['name', 'description'];
+    protected $fillable = ['name', 'description', 'branch_id'];
 }

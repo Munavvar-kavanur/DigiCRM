@@ -9,24 +9,43 @@ use Illuminate\Validation\Rules;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $query = User::where('is_employee', true);
+        $query = User::where('is_employee', true)->with('branch');
+
+        // Branch Filter (Super Admin)
+        if (auth()->user()->isSuperAdmin() && $request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        // Search Filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
         
         $totalEmployees = $query->count();
         $totalMonthlyCost = $query->sum('salary');
         $averageSalary = $totalEmployees > 0 ? $query->avg('salary') : 0;
         
         $employees = $query->latest()->paginate(10);
+        $branches = \App\Models\Branch::orderBy('name')->get();
         
-        return view('employees.index', compact('employees', 'totalEmployees', 'totalMonthlyCost', 'averageSalary'));
+        $settings = \App\Models\Setting::getAll();
+
+        return view('employees.index', compact('employees', 'totalEmployees', 'totalMonthlyCost', 'averageSalary', 'settings', 'branches'));
     }
 
     public function create()
     {
         $employeeTypes = \App\Models\EmployeeType::all();
         $payrollTypes = \App\Models\PayrollType::all();
-        return view('employees.create', compact('employeeTypes', 'payrollTypes'));
+        $branches = auth()->user()->isSuperAdmin() ? \App\Models\Branch::all() : collect();
+        
+        return view('employees.create', compact('employeeTypes', 'payrollTypes', 'branches'));
     }
 
     public function store(Request $request)
@@ -39,7 +58,12 @@ class EmployeeController extends Controller
             'joining_date' => ['nullable', 'date'],
             'employee_type_id' => ['nullable', 'exists:employee_types,id'],
             'payroll_type_id' => ['nullable', 'exists:payroll_types,id'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'role' => ['nullable', 'in:super_admin,branch_admin,employee'],
         ]);
+
+        $branchId = auth()->user()->isSuperAdmin() ? $request->branch_id : auth()->user()->branch_id;
+        $role = auth()->user()->isSuperAdmin() ? ($request->role ?? 'employee') : 'employee';
 
         $user = User::create([
             'name' => $request->name,
@@ -51,6 +75,8 @@ class EmployeeController extends Controller
             'employee_type_id' => $request->employee_type_id,
             'payroll_type_id' => $request->payroll_type_id,
             'is_employee' => true,
+            'branch_id' => $branchId,
+            'role' => $role,
         ]);
 
         return redirect()->route('employees.index')->with('success', 'Employee created successfully. Default password is "password".');
@@ -60,7 +86,9 @@ class EmployeeController extends Controller
     {
         $employeeTypes = \App\Models\EmployeeType::all();
         $payrollTypes = \App\Models\PayrollType::all();
-        return view('employees.edit', compact('employee', 'employeeTypes', 'payrollTypes'));
+        $branches = auth()->user()->isSuperAdmin() ? \App\Models\Branch::all() : collect();
+        
+        return view('employees.edit', compact('employee', 'employeeTypes', 'payrollTypes', 'branches'));
     }
 
     public function update(Request $request, User $employee)
@@ -73,7 +101,12 @@ class EmployeeController extends Controller
             'joining_date' => ['nullable', 'date'],
             'employee_type_id' => ['nullable', 'exists:employee_types,id'],
             'payroll_type_id' => ['nullable', 'exists:payroll_types,id'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'role' => ['nullable', 'in:super_admin,branch_admin,employee'],
         ]);
+
+        $branchId = auth()->user()->isSuperAdmin() ? $request->branch_id : auth()->user()->branch_id;
+        $role = auth()->user()->isSuperAdmin() ? ($request->role ?? 'employee') : 'employee';
 
         $employee->update([
             'name' => $request->name,
@@ -83,6 +116,8 @@ class EmployeeController extends Controller
             'joining_date' => $request->joining_date,
             'employee_type_id' => $request->employee_type_id,
             'payroll_type_id' => $request->payroll_type_id,
+            'branch_id' => $branchId,
+            'role' => $role,
         ]);
 
         return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');
@@ -90,10 +125,6 @@ class EmployeeController extends Controller
 
     public function destroy(User $employee)
     {
-        if ($employee->id === auth()->id()) {
-            return redirect()->route('employees.index')->with('error', 'You cannot delete your own account.');
-        }
-
         $employee->delete();
         return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
     }

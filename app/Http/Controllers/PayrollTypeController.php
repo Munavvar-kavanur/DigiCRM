@@ -10,11 +10,31 @@ class PayrollTypeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:payroll_types,name',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        PayrollType::create($request->only('name', 'description'));
+        $branchId = null;
+        if (auth()->user()->isSuperAdmin()) {
+            $branchId = session('settings_branch_context') ?: null;
+        } else {
+            $branchId = auth()->user()->branch_id;
+        }
+
+        // Check uniqueness within branch
+        $exists = PayrollType::where('name', $request->name)
+            ->where('branch_id', $branchId)
+            ->exists();
+            
+        if ($exists) {
+            return back()->withErrors(['name' => 'The name has already been taken for this branch.']);
+        }
+
+        PayrollType::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'branch_id' => $branchId,
+        ]);
 
         return redirect()->route('settings.edit')->with('success', 'Payroll Type added successfully.');
     }

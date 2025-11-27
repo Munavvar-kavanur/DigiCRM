@@ -84,7 +84,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Total Invoiced</p>
-                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($totalInvoiced, 2) }}</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($totalInvoiced, 2) }}</p>
                             </div>
                         </div>
                     </div>
@@ -97,7 +97,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Outstanding</p>
-                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($outstandingBalance, 2) }}</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($outstandingBalance, 2) }}</p>
                             </div>
                         </div>
                     </div>
@@ -135,21 +135,6 @@
                                 </dd>
                             </div>
                             <div class="sm:col-span-1">
-                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Tax ID / VAT</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $client->tax_id ?? '-' }}</dd>
-                            </div>
-                            <div class="sm:col-span-1">
-                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $client->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                        {{ ucfirst($client->status) }}
-                                    </span>
-                                </dd>
-                            </div>
-                            <div class="sm:col-span-2">
-                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Address</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $client->address ?? '-' }}</dd>
-                            </div>
                             <div class="sm:col-span-2">
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Notes</dt>
                                 <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 whitespace-pre-line">{{ $client->notes ?? '-' }}</dd>
@@ -266,7 +251,7 @@
                                                     {{ ucfirst($invoice->status) }}
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${{ number_format($invoice->total_amount, 2) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->total_amount, 2) }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ \Carbon\Carbon::parse($invoice->due_date)->format('M d, Y') }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div class="flex space-x-2">
@@ -343,7 +328,7 @@
                                                     {{ ucfirst($estimate->status) }}
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${{ number_format($estimate->total_amount, 2) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->total_amount, 2) }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ \Carbon\Carbon::parse($estimate->valid_until)->format('M d, Y') }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div class="flex space-x-2">

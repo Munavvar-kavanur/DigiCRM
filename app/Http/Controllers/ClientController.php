@@ -26,7 +26,13 @@ class ClientController extends Controller
             $query->where('status', $request->status);
         }
 
-        $clients = $query->withCount('projects')->latest()->paginate(10);
+        // Branch Filter (Super Admin)
+        if ($request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        $clients = $query->withCount('projects')->with('branch')->latest()->paginate(10);
+        $branches = \App\Models\Branch::orderBy('name')->get();
 
         // Stats
         $totalClients = Client::count();
@@ -37,7 +43,9 @@ class ClientController extends Controller
         // Assuming Invoice model has 'total_amount' and 'status'
         $totalRevenue = \App\Models\Invoice::where('status', 'paid')->sum('total_amount');
 
-        return view('clients.index', compact('clients', 'totalClients', 'activeClients', 'inactiveClients', 'totalRevenue'));
+        $settings = \App\Models\Setting::getAll();
+
+        return view('clients.index', compact('clients', 'totalClients', 'activeClients', 'inactiveClients', 'totalRevenue', 'settings', 'branches'));
     }
 
     public function create()
@@ -76,7 +84,9 @@ class ClientController extends Controller
         $paidInvoices = $client->invoices->where('status', 'paid')->sum('total_amount');
         $outstandingBalance = $totalInvoiced - $paidInvoices;
 
-        return view('clients.show', compact('client', 'totalProjects', 'activeProjects', 'totalInvoiced', 'outstandingBalance'));
+        $settings = \App\Models\Setting::getAll($client->branch_id);
+
+        return view('clients.show', compact('client', 'totalProjects', 'activeProjects', 'totalInvoiced', 'outstandingBalance', 'settings'));
     }
 
     public function edit(Client $client)
@@ -107,5 +117,10 @@ class ClientController extends Controller
     {
         $client->delete();
         return redirect()->route('clients.index')->with('success', 'Client deleted successfully.');
+    }
+
+    public function getProjects(Client $client)
+    {
+        return response()->json($client->projects()->select('id', 'title')->orderBy('title')->get());
     }
 }

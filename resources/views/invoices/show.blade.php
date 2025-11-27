@@ -26,10 +26,10 @@
                 <!-- Header Bar -->
                 <div class="bg-gray-800 text-white px-8 py-6 flex justify-between items-center">
                     <div class="flex items-center">
-                        @if(isset($globalSettings['invoice_logo_light']))
-                            <img src="{{ asset('storage/' . $globalSettings['invoice_logo_light']) }}" alt="Logo" class="h-12 mr-4">
+                        @if(isset($settings['invoice_logo_light']))
+                            <img src="{{ asset('storage/' . $settings['invoice_logo_light']) }}" alt="Logo" class="h-12 mr-4">
                         @else
-                            <h2 class="text-2xl font-bold tracking-wider">{{ $globalSettings['company_name'] ?? 'COMPANY' }}</h2>
+                            <h2 class="text-2xl font-bold tracking-wider">{{ $settings['company_name'] ?? 'COMPANY' }}</h2>
                         @endif
                     </div>
                     <div class="text-right">
@@ -44,6 +44,11 @@
                                     Recurring: {{ ucfirst(str_replace('_', ' ', $invoice->recurring_frequency)) }}
                                 </span>
                             @endif
+                            @if(auth()->user()->isSuperAdmin() && $invoice->branch)
+                                <span class="px-2 py-1 text-xs font-bold uppercase rounded bg-purple-100 text-purple-800 ml-2">
+                                    {{ $invoice->branch->name }}
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -54,13 +59,13 @@
                         <div class="w-1/2 pr-4">
                             <h3 class="text-xs font-bold text-gray-500 uppercase border-b border-gray-200 pb-1 mb-2">From</h3>
                             <div class="text-sm leading-relaxed">
-                                <strong class="text-gray-900 text-base">{{ $globalSettings['company_name'] ?? 'My Company' }}</strong><br>
-                                {!! nl2br(e($globalSettings['company_address'] ?? '')) !!}<br>
-                                {{ $globalSettings['company_email'] ?? '' }}<br>
-                                {{ $globalSettings['company_phone'] ?? '' }}<br>
-                                {{ $globalSettings['company_website'] ?? '' }}
-                                @if(isset($globalSettings['tax_id']))
-                                    <br>Tax ID: {{ $globalSettings['tax_id'] }}
+                                <strong class="text-gray-900 text-base">{{ $settings['company_name'] ?? 'My Company' }}</strong><br>
+                                {!! nl2br(e($settings['company_address'] ?? '')) !!}<br>
+                                {{ $settings['company_email'] ?? '' }}<br>
+                                {{ $settings['company_phone'] ?? '' }}<br>
+                                {{ $settings['company_website'] ?? '' }}
+                                @if(isset($settings['tax_id']))
+                                    <br>Tax ID: {{ $settings['tax_id'] }}
                                 @endif
                             </div>
                         </div>
@@ -113,8 +118,8 @@
                                             <div class="text-gray-600">{{ $item->description }}</div>
                                         </td>
                                         <td class="py-3 px-4 text-sm text-gray-600 text-right">{{ $item->quantity }}</td>
-                                        <td class="py-3 px-4 text-sm text-gray-600 text-right">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
-                                        <td class="py-3 px-4 text-sm font-medium text-gray-900 text-right">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
+                                        <td class="py-3 px-4 text-sm text-gray-600 text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
+                                        <td class="py-3 px-4 text-sm font-medium text-gray-900 text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -128,12 +133,12 @@
                                 <div class="space-y-3">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600 font-medium">Subtotal</span>
-                                        <span class="text-gray-900 font-bold">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($invoice->subtotal, 2) }}</span>
+                                        <span class="text-gray-900 font-bold">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->subtotal, 2) }}</span>
                                     </div>
                                     @if($invoice->tax > 0)
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-600 font-medium">Tax</span>
-                                            <span class="text-gray-900 font-bold">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($invoice->tax, 2) }}</span>
+                                            <span class="text-gray-900 font-bold">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->tax, 2) }}</span>
                                         </div>
                                     @endif
                                     @if($invoice->discount > 0)
@@ -146,20 +151,20 @@
                                             </span>
                                             <span class="text-red-600 font-bold">
                                                 @if($invoice->discount_type === 'percent')
-                                                    -{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format(($invoice->subtotal * $invoice->discount / 100), 2) }}
+                                                    -{{ $settings['currency_symbol'] ?? '$' }}{{ number_format(($invoice->subtotal * $invoice->discount / 100), 2) }}
                                                 @else
-                                                    -{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($invoice->discount, 2) }}
+                                                    -{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->discount, 2) }}
                                                 @endif
                                             </span>
                                         </div>
                                     @endif
                                     <div class="border-t border-gray-200 my-3 pt-3 flex justify-between items-center">
                                         <span class="text-base font-bold text-gray-900">Grand Total</span>
-                                        <span class="text-xl font-bold text-indigo-600">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($invoice->grand_total, 2) }}</span>
+                                        <span class="text-xl font-bold text-indigo-600">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->grand_total, 2) }}</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-1">
                                         <span class="text-sm font-medium text-gray-600">Balance Due</span>
-                                        <span class="text-sm font-bold text-gray-900">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($invoice->balance_due, 2) }}</span>
+                                        <span class="text-sm font-bold text-gray-900">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->balance_due, 2) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -197,7 +202,7 @@
                                     <tr>
                                         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ ucfirst($payment->payment_method) }}</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white text-right">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($payment->amount, 2) }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($payment->amount, 2) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

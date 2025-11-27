@@ -26,7 +26,62 @@
         </div>
     </div>
 
-    <!-- KPI Grid -->
+    @if(auth()->user()->isSuperAdmin() && !empty($branchAnalytics))
+        <!-- Branch Analytics Section (Super Admin Only) -->
+        <div class="space-y-6">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Branch Performance</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Branch Revenue Chart -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                    <h4 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Revenue by Branch</h4>
+                    <div class="h-64">
+                        <canvas id="branchRevenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Branch Details Table -->
+                <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                        <h4 class="text-lg font-bold text-gray-900 dark:text-gray-100">Branch Details</h4>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Branch</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Clients</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Active Projects</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Revenue</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Outstanding</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                @foreach($branchAnalytics as $branch)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $branch['name'] }}</span>
+                                                <span class="text-xs text-gray-500">{{ $branch['code'] ?? '-' }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $branch['clients_count'] }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $branch['active_projects_count'] }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400">
+                                            {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($branch['revenue'], 2) }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600 dark:text-red-400">
+                                            {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($branch['outstanding'], 2) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Clients -->
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-200">
@@ -71,7 +126,7 @@
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Outstanding</p>
-                    <h3 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($totalOutstandingInvoices, 0) }}</h3>
+                    <h3 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($totalOutstandingInvoices, 0) }}</h3>
                     <div class="flex items-center mt-2">
                         <span class="text-xs font-medium text-red-600 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 rounded-full">
                             {{ $overdueInvoicesCount }} overdue
@@ -90,8 +145,8 @@
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Expenses (Month)</p>
-                    <h3 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($expensesThisMonth, 0) }}</h3>
-                    <p class="text-xs text-gray-500 mt-2">YTD: {{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($expensesThisYear, 0) }}</p>
+                    <h3 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($expensesThisMonth, 0) }}</h3>
+                    <p class="text-xs text-gray-500 mt-2">YTD: {{ $settings['currency_symbol'] ?? '$' }}{{ number_format($expensesThisYear, 0) }}</p>
                 </div>
                 <div class="p-3 bg-red-50 dark:bg-red-900/30 rounded-xl text-red-600 dark:text-red-400">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
@@ -175,7 +230,7 @@
                                 @foreach($overdueInvoices as $invoice)
                                     <li class="flex justify-between items-center text-xs text-yellow-700 dark:text-yellow-400">
                                         <span class="font-medium">{{ $invoice->invoice_number }}</span>
-                                        <span class="whitespace-nowrap">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($invoice->total_amount, 2) }}</span>
+                                        <span class="whitespace-nowrap">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->total_amount, 2) }}</span>
                                     </li>
                                 @endforeach
                             </ul>
@@ -218,7 +273,7 @@
                     </div>
                     <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                         <span class="text-sm text-gray-500 dark:text-gray-400">Total This Month</span>
-                        <span class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($totalPayrollThisMonth, 2) }}</span>
+                        <span class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($totalPayrollThisMonth, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                         <span class="text-sm text-gray-500 dark:text-gray-400">Active Employees</span>
@@ -252,7 +307,7 @@
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->invoice_number }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $invoice->client->name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">{{ $globalSettings['currency_symbol'] ?? '$' }}{{ number_format($invoice->total_amount, 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->total_amount, 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full 
                                         {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 
@@ -360,7 +415,7 @@
                             },
                             ticks: {
                                 callback: function(value) {
-                                    return '{{ $globalSettings['currency_symbol'] ?? '$' }}' + value;
+                                    return '{{ $settings['currency_symbol'] ?? '$' }}' + value;
                                 }
                             }
                         },
@@ -438,6 +493,42 @@
                     }
                 }
             });
+
+            @if(auth()->user()->isSuperAdmin() && !empty($branchRevenueLabels))
+                // Branch Revenue Chart
+                const branchRevenueCtx = document.getElementById('branchRevenueChart').getContext('2d');
+                new Chart(branchRevenueCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: {!! json_encode($branchRevenueLabels) !!},
+                        datasets: [{
+                            data: {!! json_encode($branchRevenueData) !!},
+                            backgroundColor: [
+                                '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20,
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            @endif
         });
     </script>
 </x-app-layout>

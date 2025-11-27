@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExpenseCategory extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\BelongsToBranch;
 
-    protected $fillable = ['name', 'color'];
+    protected $fillable = ['name', 'color', 'branch_id'];
 
     public function expenses()
     {

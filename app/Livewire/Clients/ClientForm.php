@@ -19,6 +19,8 @@ class ClientForm extends Component
     public $address = '';
     public $notes = '';
 
+    public $branch_id = null;
+
     public function mount(Client $client = null)
     {
         $this->client = $client;
@@ -33,6 +35,7 @@ class ClientForm extends Component
             $this->status = $client->status;
             $this->address = $client->address;
             $this->notes = $client->notes;
+            $this->branch_id = $client->branch_id;
         }
     }
 
@@ -48,12 +51,18 @@ class ClientForm extends Component
             'status' => 'required|in:active,inactive',
             'address' => 'nullable|string',
             'notes' => 'nullable|string',
+            'branch_id' => 'nullable|exists:branches,id',
         ];
     }
 
     public function save()
     {
         $validated = $this->validate();
+
+        // Only allow Super Admin to set branch_id
+        if (!auth()->user()->isSuperAdmin()) {
+            unset($validated['branch_id']);
+        }
 
         if ($this->client && $this->client->exists) {
             $this->client->update($validated);
@@ -69,6 +78,7 @@ class ClientForm extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.clients.client-form');
+        $branches = \App\Models\Branch::orderBy('name')->get();
+        return view('livewire.clients.client-form', compact('branches'));
     }
 }

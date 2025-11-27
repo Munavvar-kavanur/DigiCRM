@@ -9,6 +9,11 @@
                         <div>
                             <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">
                                 Expense Details
+                                @if(auth()->user()->isSuperAdmin() && $expense->branch)
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 align-middle">
+                                        {{ $expense->branch->name }}
+                                    </span>
+                                @endif
                             </h2>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                 Submitted by {{ $expense->user->name }} on {{ $expense->date->format('F d, Y') }}

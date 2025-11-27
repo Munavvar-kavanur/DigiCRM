@@ -8,6 +8,11 @@
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                     {{ __('Project: ') . $project->title }}
+                    @if(auth()->user()->isSuperAdmin() && $project->branch)
+                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                            {{ $project->branch->name }}
+                        </span>
+                    @endif
                 </h2>
                 <div class="flex space-x-3">
                     <a href="{{ route('projects.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-25 transition ease-in-out duration-150">

@@ -67,35 +67,51 @@
                         </a>
                     </div>
 
-                    <!-- Filters -->
-                    <div class="mb-6 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <form action="{{ route('expenses.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <x-input-label for="search" :value="__('Search')" />
-                                <x-text-input id="search" name="search" type="text" class="mt-1 block w-full" placeholder="Description, Merchant..." value="{{ request('search') }}" />
+                    <div class="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                        <form action="{{ route('expenses.index') }}" method="GET" class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                            <!-- Search -->
+                            <div class="relative w-full md:w-1/3">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input type="text" name="search" id="search" 
+                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out" 
+                                    placeholder="Description, Merchant..." 
+                                    value="{{ request('search') }}">
                             </div>
-                            <div>
-                                <x-input-label for="status" :value="__('Status')" />
-                                <select name="status" id="status" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+
+                            <!-- Filters -->
+                            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                                <select name="status" id="status" onchange="this.form.submit()" class="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">All Statuses</option>
                                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                                     <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
                                     <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
                                 </select>
-                            </div>
-                            <div>
-                                <x-input-label for="category_id" :value="__('Category')" />
-                                <select name="category_id" id="category_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+
+                                <select name="category_id" id="category_id" onchange="this.form.submit()" class="block w-full md:w-48 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">All Categories</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                                     @endforeach
                                 </select>
-                            </div>
-                            <div class="flex items-end">
-                                <x-primary-button class="w-full justify-center">
-                                    {{ __('Filter') }}
-                                </x-primary-button>
+
+                                @if(auth()->user()->isSuperAdmin())
+                                    <select name="branch_id" id="branch_id" onchange="this.form.submit()" class="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-gray-300">
+                                        <option value="">All Branches</option>
+                                        @foreach($branches as $branch)
+                                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+
+                                @if(request('search') || request('status') || request('category_id') || request('branch_id'))
+                                    <a href="{{ route('expenses.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                        Clear
+                                    </a>
+                                @endif
                             </div>
                         </form>
                     </div>
@@ -113,12 +129,14 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                                     <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Details</th>
+                                    @if(auth()->user()->isSuperAdmin())
+                                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Branch</th>
+                                    @endif
                                     <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
                                     <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                                     <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
                                     <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                                 </tr>
-                            </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse ($expenses as $expense)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
@@ -139,6 +157,11 @@
                                                 </div>
                                             @endif
                                         </td>
+                                        @if(auth()->user()->isSuperAdmin())
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900 dark:text-white">{{ $expense->branch ? $expense->branch->name : 'N/A' }}</div>
+                                            </td>
+                                        @endif
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             @if($expense->category instanceof \App\Models\ExpenseCategory)
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style="background-color: {{ $expense->category->color }}20; color: {{ $expense->category->color }}">
@@ -166,8 +189,8 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-semibold">
-                                            {{ $currency }}{{ number_format($expense->amount, 2) }}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">
+                                            {{ $expense->branch ? $expense->branch->currency : '$' }}{{ number_format($expense->amount, 2) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex space-x-3">
@@ -186,10 +209,6 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors" title="Delete">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
                                                 </form>
                                             </div>
                                         </td>
