@@ -12,6 +12,20 @@ class ProjectController extends Controller
     {
         $query = Project::with(['client', 'branch']);
 
+        // Helper to apply branch filter
+        $applyBranch = function ($q) use ($request) {
+            if (auth()->user()->isSuperAdmin()) {
+                if ($request->has('branch_id') && $request->branch_id != '') {
+                    $q->where('branch_id', $request->branch_id);
+                }
+            } else {
+                $q->where('branch_id', auth()->user()->branch_id);
+            }
+        };
+
+        // Apply branch filter to main query
+        $applyBranch($query);
+
         // Search
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -33,22 +47,43 @@ class ProjectController extends Controller
             $query->where('client_id', $request->client_id);
         }
 
-        // Branch Filter (Super Admin)
-        if (auth()->user()->isSuperAdmin() && $request->has('branch_id') && $request->branch_id != '') {
-            $query->where('branch_id', $request->branch_id);
-        }
-
         $projects = $query->latest()->paginate(10);
-        $clients = Client::orderBy('name')->get();
+        
+        // Clients & Branches for filters
+        $clientsQuery = Client::orderBy('name');
+        $applyBranch($clientsQuery);
+        $clients = $clientsQuery->get();
+        
         $branches = \App\Models\Branch::orderBy('name')->get();
 
-        // Stats
-        $totalProjects = Project::count();
-        $inProgressProjects = Project::where('status', 'in_progress')->count();
-        $completedProjects = Project::where('status', 'completed')->count();
-        $onHoldProjects = Project::where('status', 'on_hold')->count();
+        // Stats (Filtered by Branch)
+        $totalProjects = Project::query();
+        $applyBranch($totalProjects);
+        $totalProjects = $totalProjects->count();
 
-        return view('projects.index', compact('projects', 'clients', 'branches', 'totalProjects', 'inProgressProjects', 'completedProjects', 'onHoldProjects'));
+        $inProgressProjects = Project::where('status', 'in_progress');
+        $applyBranch($inProgressProjects);
+        $inProgressProjects = $inProgressProjects->count();
+
+        $completedProjects = Project::where('status', 'completed');
+        $applyBranch($completedProjects);
+        $completedProjects = $completedProjects->count();
+
+        $onHoldProjects = Project::where('status', 'on_hold');
+        $applyBranch($onHoldProjects);
+        $onHoldProjects = $onHoldProjects->count();
+
+        // Pass selected branch for view context
+        $selectedBranch = null;
+        if ($request->has('branch_id') && $request->branch_id) {
+            $selectedBranch = \App\Models\Branch::find($request->branch_id);
+        }
+
+        return view('projects.index', compact(
+            'projects', 'clients', 'branches', 
+            'totalProjects', 'inProgressProjects', 'completedProjects', 'onHoldProjects',
+            'selectedBranch'
+        ));
     }
 
     public function create()

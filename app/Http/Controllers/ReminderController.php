@@ -160,11 +160,15 @@ class ReminderController extends Controller
         $completedCount = (clone $statsQuery)->where('status', 'completed')->count();
 
         $branches = [];
+        $selectedBranch = null;
         if (Auth::user()->isSuperAdmin()) {
             $branches = Branch::all();
+            if ($request->filled('branch_id')) {
+                $selectedBranch = Branch::find($request->branch_id);
+            }
         }
 
-        return view('reminders.index', compact('reminders', 'upcomingCount', 'overdueCount', 'completedCount', 'branches'));
+        return view('reminders.index', compact('reminders', 'upcomingCount', 'overdueCount', 'completedCount', 'branches', 'selectedBranch'));
     }
 
     public function destroy(Reminder $reminder)

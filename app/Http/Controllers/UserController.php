@@ -46,9 +46,30 @@ class UserController extends Controller
             $query->where('role', $request->role);
         }
 
+        // Clone query for stats to respect filters (except role filter for distribution stats usually, but let's keep it simple or separate)
+        // Actually, stats usually show the overview. Let's calculate stats based on the *current branch context* but ignoring the specific role filter so we see the distribution.
+        
+        $statsQuery = User::whereIn('role', ['super_admin', 'branch_admin']);
+        
+        // Apply Branch Filter to Stats
+        if (auth()->user()->isSuperAdmin()) {
+            if ($request->has('branch_id') && $request->branch_id != '') {
+                $statsQuery->where('branch_id', $request->branch_id);
+            } elseif (session()->has('settings_branch_context') && !$request->has('branch_id')) {
+                $branchId = session('settings_branch_context');
+                if ($branchId) {
+                     $statsQuery->where('branch_id', $branchId);
+                }
+            }
+        }
+
+        $totalUsers = (clone $statsQuery)->count();
+        $totalSuperAdmins = (clone $statsQuery)->where('role', 'super_admin')->count();
+        $totalBranchAdmins = (clone $statsQuery)->where('role', 'branch_admin')->count();
+
         $users = $query->latest()->paginate(10)->withQueryString();
             
-        return view('settings.users.index', compact('users'));
+        return view('settings.users.index', compact('users', 'totalUsers', 'totalSuperAdmins', 'totalBranchAdmins'));
     }
 
     public function create()

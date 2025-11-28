@@ -13,13 +13,22 @@ class PayrollController extends Controller
     {
         $query = Payroll::with(['user', 'branch.settings'])->latest();
 
+        // Helper to apply branch filter
+        $applyBranch = function ($q) use ($request) {
+            if (auth()->user()->isSuperAdmin()) {
+                if ($request->has('branch_id') && $request->branch_id != '') {
+                    $q->where('branch_id', $request->branch_id);
+                }
+            } else {
+                $q->where('branch_id', auth()->user()->branch_id);
+            }
+        };
+
+        // Apply branch filter to main query
+        $applyBranch($query);
+
         if ($request->has('month')) {
             $query->where('salary_month', 'like', $request->month . '%');
-        }
-
-        // Branch Filter (Super Admin)
-        if (auth()->user()->isSuperAdmin() && $request->has('branch_id') && $request->branch_id != '') {
-            $query->where('branch_id', $request->branch_id);
         }
 
         // Search Filter
@@ -30,21 +39,85 @@ class PayrollController extends Controller
             });
         }
 
-        // Calculate stats based on the filtered query
-        // We clone the query to avoid modifying the original query for pagination
-        $statsQuery = clone $query;
-        $payrollsCollection = $statsQuery->get();
-
-        $totalPayroll = $payrollsCollection->sum('net_salary');
-        $paidPayroll = $payrollsCollection->where('status', 'paid')->sum('net_salary');
-        $pendingPayroll = $payrollsCollection->where('status', 'pending')->sum('net_salary');
-
         $payrolls = $query->paginate(10);
         $branches = \App\Models\Branch::orderBy('name')->get();
 
-        $settings = \App\Models\Setting::getAll();
+        // Selected Branch for View Context
+        $selectedBranch = null;
+        if ($request->has('branch_id') && $request->branch_id) {
+            $selectedBranch = \App\Models\Branch::find($request->branch_id);
+        } elseif (!auth()->user()->isSuperAdmin()) {
+            $selectedBranch = auth()->user()->branch;
+        }
 
-        return view('payrolls.index', compact('payrolls', 'totalPayroll', 'paidPayroll', 'pendingPayroll', 'settings', 'branches'));
+        // Helper to get currency totals
+        $getCurrencyTotals = function ($statusFilter = null) use ($applyBranch, $selectedBranch, $request) {
+            // If a specific branch is selected (or user is branch admin), we only need that branch's currency
+            if ($selectedBranch) {
+                $q = Payroll::query();
+                $applyBranch($q);
+                if ($request->has('month')) {
+                    $q->where('salary_month', 'like', $request->month . '%');
+                }
+                if ($statusFilter) {
+                    $statusFilter($q);
+                }
+                $total = $q->sum('net_salary');
+                return [
+                    (object)[
+                        'currency' => $selectedBranch->currency,
+                        'amount' => $total
+                    ]
+                ];
+            }
+
+            // Global view: Aggregate by branch_id first
+            $q = Payroll::query();
+            if ($request->has('month')) {
+                $q->where('salary_month', 'like', $request->month . '%');
+            }
+            if ($statusFilter) {
+                $statusFilter($q);
+            }
+
+            // Group by branch_id
+            $results = $q->selectRaw('branch_id, SUM(net_salary) as total_amount')
+                         ->groupBy('branch_id')
+                         ->get();
+
+            // Map to currencies and aggregate
+            $currencyTotals = [];
+            $branches = \App\Models\Branch::with('settings')->get()->keyBy('id');
+
+            foreach ($results as $result) {
+                $branch = $branches->get($result->branch_id);
+                // Use branch currency or default '$' if branch not found (e.g. deleted branch or null)
+                $currency = $branch ? $branch->currency : '$';
+                
+                if (!isset($currencyTotals[$currency])) {
+                    $currencyTotals[$currency] = 0;
+                }
+                $currencyTotals[$currency] += $result->total_amount;
+            }
+
+            // Convert to array of objects
+            $final = [];
+            foreach ($currencyTotals as $currency => $amount) {
+                $final[] = (object)[
+                    'currency' => $currency,
+                    'amount' => $amount
+                ];
+            }
+            
+            return collect($final);
+        };
+
+        // Stats
+        $totalPayrollValue = $getCurrencyTotals();
+        $paidPayrollValue = $getCurrencyTotals(function($q) { $q->where('status', 'paid'); });
+        $pendingPayrollValue = $getCurrencyTotals(function($q) { $q->where('status', 'pending'); });
+
+        return view('payrolls.index', compact('payrolls', 'totalPayrollValue', 'paidPayrollValue', 'pendingPayrollValue', 'branches', 'selectedBranch'));
     }
 
     public function create()

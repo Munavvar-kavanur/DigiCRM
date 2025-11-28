@@ -11,32 +11,102 @@ class EmployeeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('is_employee', true)->with('branch');
+        $query = User::where('is_employee', true)->with('branch.settings');
 
-        // Branch Filter (Super Admin)
-        if (auth()->user()->isSuperAdmin() && $request->has('branch_id') && $request->branch_id != '') {
-            $query->where('branch_id', $request->branch_id);
-        }
+        // Helper to apply branch filter
+        $applyBranch = function ($q) use ($request) {
+            if (auth()->user()->isSuperAdmin()) {
+                if ($request->has('branch_id') && $request->branch_id != '') {
+                    $q->where('branch_id', $request->branch_id);
+                }
+            } else {
+                $q->where('branch_id', auth()->user()->branch_id);
+            }
+        };
+
+        // Apply branch filter to main query
+        $applyBranch($query);
 
         // Search Filter
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('job_title', 'like', "%{$search}%");
             });
         }
         
-        $totalEmployees = $query->count();
-        $totalMonthlyCost = $query->sum('salary');
-        $averageSalary = $totalEmployees > 0 ? $query->avg('salary') : 0;
-        
         $employees = $query->latest()->paginate(10);
         $branches = \App\Models\Branch::orderBy('name')->get();
-        
-        $settings = \App\Models\Setting::getAll();
 
-        return view('employees.index', compact('employees', 'totalEmployees', 'totalMonthlyCost', 'averageSalary', 'settings', 'branches'));
+        // Selected Branch for View Context
+        $selectedBranch = null;
+        if ($request->has('branch_id') && $request->branch_id) {
+            $selectedBranch = \App\Models\Branch::find($request->branch_id);
+        } elseif (!auth()->user()->isSuperAdmin()) {
+            $selectedBranch = auth()->user()->branch;
+        }
+
+        // Helper to get currency totals
+        $getCurrencyTotals = function ($column = 'salary') use ($applyBranch, $selectedBranch, $request) {
+            // If a specific branch is selected (or user is branch admin), we only need that branch's currency
+            if ($selectedBranch) {
+                $q = User::where('is_employee', true);
+                $applyBranch($q);
+                
+                $total = $q->sum($column);
+                return [
+                    (object)[
+                        'currency' => $selectedBranch->currency,
+                        'amount' => $total
+                    ]
+                ];
+            }
+
+            // Global view: Aggregate by branch_id first
+            $q = User::where('is_employee', true);
+            
+            // Group by branch_id
+            $results = $q->selectRaw("branch_id, SUM($column) as total_amount")
+                         ->groupBy('branch_id')
+                         ->get();
+
+            // Map to currencies and aggregate
+            $currencyTotals = [];
+            $branches = \App\Models\Branch::with('settings')->get()->keyBy('id');
+
+            foreach ($results as $result) {
+                $branch = $branches->get($result->branch_id);
+                // Use branch currency or default '$' if branch not found (e.g. deleted branch or null)
+                $currency = $branch ? $branch->currency : '$';
+                
+                if (!isset($currencyTotals[$currency])) {
+                    $currencyTotals[$currency] = 0;
+                }
+                $currencyTotals[$currency] += $result->total_amount;
+            }
+
+            // Convert to array of objects
+            $final = [];
+            foreach ($currencyTotals as $currency => $amount) {
+                $final[] = (object)[
+                    'currency' => $currency,
+                    'amount' => $amount
+                ];
+            }
+            
+            return collect($final);
+        };
+
+        // Stats
+        $totalEmployees = User::where('is_employee', true);
+        $applyBranch($totalEmployees);
+        $totalEmployees = $totalEmployees->count();
+
+        $totalMonthlyCostValue = $getCurrencyTotals('salary');
+
+        return view('employees.index', compact('employees', 'totalEmployees', 'totalMonthlyCostValue', 'branches', 'selectedBranch'));
     }
 
     public function create()

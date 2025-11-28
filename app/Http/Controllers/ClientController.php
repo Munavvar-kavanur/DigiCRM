@@ -9,7 +9,18 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
+        $applyBranch = function ($query) use ($request) {
+            if (auth()->user()->isSuperAdmin()) {
+                if ($request->has('branch_id') && $request->branch_id != '') {
+                    $query->where('branch_id', $request->branch_id);
+                }
+            } else {
+                $query->where('branch_id', auth()->user()->branch_id);
+            }
+        };
+
         $query = Client::query();
+        $applyBranch($query);
 
         // Search
         if ($request->has('search')) {
@@ -26,26 +37,61 @@ class ClientController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Branch Filter (Super Admin)
-        if ($request->has('branch_id') && $request->branch_id != '') {
-            $query->where('branch_id', $request->branch_id);
-        }
-
         $clients = $query->withCount('projects')->with('branch')->latest()->paginate(10);
         $branches = \App\Models\Branch::orderBy('name')->get();
 
         // Stats
-        $totalClients = Client::count();
-        $activeClients = Client::where('status', 'active')->count();
-        $inactiveClients = Client::where('status', 'inactive')->count();
+        $statsQuery = Client::query();
+        $applyBranch($statsQuery);
+        
+        $totalClients = (clone $statsQuery)->count();
+        $activeClients = (clone $statsQuery)->where('status', 'active')->count();
+        $inactiveClients = (clone $statsQuery)->where('status', 'inactive')->count();
         
         // Calculate Total Revenue (Sum of paid invoices for all clients)
-        // Assuming Invoice model has 'total_amount' and 'status'
-        $totalRevenue = \App\Models\Invoice::where('status', 'paid')->sum('total_amount');
+        $revenueQuery = \App\Models\Invoice::where('status', 'paid');
+        $applyBranch($revenueQuery);
+
+        // Fetch totals grouped by branch
+        $branchTotals = $revenueQuery->select('branch_id', \DB::raw('SUM(total_amount) as total'))
+            ->groupBy('branch_id')
+            ->get();
+
+        $currencyTotals = [];
+
+        foreach ($branchTotals as $branchTotal) {
+            $branchId = $branchTotal->branch_id;
+            // Get currency code for this branch (or global if null)
+            $currencyCode = \App\Models\Setting::get('currency_code', 'USD', $branchId);
+            $currencySymbol = \App\Models\Setting::get('currency_symbol', '$', $branchId);
+
+            if (!isset($currencyTotals[$currencyCode])) {
+                $currencyTotals[$currencyCode] = [
+                    'amount' => 0,
+                    'symbol' => $currencySymbol,
+                    'code' => $currencyCode
+                ];
+            }
+            $currencyTotals[$currencyCode]['amount'] += $branchTotal->total;
+        }
+
+        $revenueStats = collect($currencyTotals)->map(function($data) {
+            return [
+                'amount' => $data['amount'],
+                'formatted' => number_format($data['amount'], 2),
+                'symbol' => $data['symbol'],
+                'code' => $data['code']
+            ];
+        });
 
         $settings = \App\Models\Setting::getAll();
+        
+        $selectedBranch = null;
+        if ($request->filled('branch_id')) {
+            $selectedBranch = \App\Models\Branch::find($request->branch_id);
+        }
 
-        return view('clients.index', compact('clients', 'totalClients', 'activeClients', 'inactiveClients', 'totalRevenue', 'settings', 'branches'));
+        return view('clients.index', compact('clients', 'totalClients', 'activeClients', 'inactiveClients', 'revenueStats', 'settings', 'branches', 'selectedBranch'));
     }
 
     public function create()

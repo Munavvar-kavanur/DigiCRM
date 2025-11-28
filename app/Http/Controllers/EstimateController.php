@@ -13,6 +13,20 @@ class EstimateController extends Controller
     {
         $query = Estimate::with(['client', 'project', 'branch.settings']);
 
+        // Helper to apply branch filter
+        $applyBranch = function ($q) use ($request) {
+            if (auth()->user()->isSuperAdmin()) {
+                if ($request->has('branch_id') && $request->branch_id != '') {
+                    $q->where('branch_id', $request->branch_id);
+                }
+            } else {
+                $q->where('branch_id', auth()->user()->branch_id);
+            }
+        };
+
+        // Apply branch filter to main query
+        $applyBranch($query);
+
         // Search
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -34,11 +48,6 @@ class EstimateController extends Controller
             $query->where('client_id', $request->client_id);
         }
         
-        // Branch Filter (Super Admin)
-        if ($request->has('branch_id') && $request->branch_id != '') {
-            $query->where('branch_id', $request->branch_id);
-        }
-
         // Date Filter
         if ($request->has('date_from')) {
             $query->whereDate('valid_until', '>=', $request->date_from);
@@ -48,16 +57,107 @@ class EstimateController extends Controller
         }
 
         $estimates = $query->latest()->paginate(10);
-        $clients = Client::orderBy('name')->get();
+        
+        // Clients & Branches for filters
+        $clientsQuery = Client::orderBy('name');
+        $applyBranch($clientsQuery);
+        $clients = $clientsQuery->get();
+        
         $branches = \App\Models\Branch::orderBy('name')->get();
 
-        // Stats
-        $totalEstimates = Estimate::count();
-        $acceptedEstimates = Estimate::where('status', 'accepted')->count();
-        $pendingEstimates = Estimate::whereIn('status', ['sent', 'draft'])->count();
-        $declinedEstimates = Estimate::where('status', 'rejected')->count();
+        // Selected Branch for View Context
+        $selectedBranch = null;
+        if ($request->has('branch_id') && $request->branch_id) {
+            $selectedBranch = \App\Models\Branch::find($request->branch_id);
+        } elseif (!auth()->user()->isSuperAdmin()) {
+            $selectedBranch = auth()->user()->branch;
+        }
 
-        return view('estimates.index', compact('estimates', 'clients', 'branches', 'totalEstimates', 'acceptedEstimates', 'pendingEstimates', 'declinedEstimates'));
+        // Helper to get currency totals
+        $getCurrencyTotals = function ($statusFilter = null) use ($applyBranch, $selectedBranch) {
+            // If a specific branch is selected (or user is branch admin), we only need that branch's currency
+            if ($selectedBranch) {
+                $q = Estimate::query();
+                $applyBranch($q);
+                if ($statusFilter) {
+                    $statusFilter($q);
+                }
+                $total = $q->sum('total_amount');
+                return [
+                    (object)[
+                        'currency' => $selectedBranch->currency,
+                        'amount' => $total
+                    ]
+                ];
+            }
+
+            // Global view: Aggregate by branch_id first
+            $q = Estimate::query();
+            if ($statusFilter) {
+                $statusFilter($q);
+            }
+
+            // Group by branch_id
+            $results = $q->selectRaw('branch_id, SUM(total_amount) as total_amount')
+                         ->groupBy('branch_id')
+                         ->get();
+
+            // Map to currencies and aggregate
+            $currencyTotals = [];
+            $branches = \App\Models\Branch::with('settings')->get()->keyBy('id');
+
+            foreach ($results as $result) {
+                $branch = $branches->get($result->branch_id);
+                // Use branch currency or default '$' if branch not found (e.g. deleted branch or null)
+                $currency = $branch ? $branch->currency : '$';
+                
+                if (!isset($currencyTotals[$currency])) {
+                    $currencyTotals[$currency] = 0;
+                }
+                $currencyTotals[$currency] += $result->total_amount;
+            }
+
+            // Convert to array of objects
+            $final = [];
+            foreach ($currencyTotals as $currency => $amount) {
+                $final[] = (object)[
+                    'currency' => $currency,
+                    'amount' => $amount
+                ];
+            }
+            
+            return collect($final);
+        };
+
+        // Calculate Stats
+        $totalEstimates = Estimate::query();
+        $applyBranch($totalEstimates);
+        $totalEstimatesCount = $totalEstimates->count();
+        $totalEstimatesValue = $getCurrencyTotals();
+
+        $acceptedEstimates = Estimate::where('status', 'accepted');
+        $applyBranch($acceptedEstimates);
+        $acceptedEstimatesCount = $acceptedEstimates->count();
+        $acceptedEstimatesValue = $getCurrencyTotals(function($q) { $q->where('status', 'accepted'); });
+
+        $pendingEstimates = Estimate::whereIn('status', ['sent', 'draft']);
+        $applyBranch($pendingEstimates);
+        $pendingEstimatesCount = $pendingEstimates->count();
+        $pendingEstimatesValue = $getCurrencyTotals(function($q) { $q->whereIn('status', ['sent', 'draft']); });
+
+        $declinedEstimates = Estimate::where('status', 'rejected');
+        $applyBranch($declinedEstimates);
+        $declinedEstimatesCount = $declinedEstimates->count();
+        $declinedEstimatesValue = $getCurrencyTotals(function($q) { $q->where('status', 'rejected'); });
+
+        return view('estimates.index', compact(
+            'estimates', 'clients', 'branches', 
+            'totalEstimatesCount', 'totalEstimatesValue',
+            'acceptedEstimatesCount', 'acceptedEstimatesValue',
+            'pendingEstimatesCount', 'pendingEstimatesValue',
+            'declinedEstimatesCount', 'declinedEstimatesValue',
+            'selectedBranch'
+        ));
     }
 
     public function create()

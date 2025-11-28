@@ -11,6 +11,20 @@ class ExpenseController extends Controller
     {
         $query = Expense::with(['user', 'category', 'branch.settings']);
 
+        // Helper to apply branch filter
+        $applyBranch = function ($q) use ($request) {
+            if (auth()->user()->isSuperAdmin()) {
+                if ($request->has('branch_id') && $request->branch_id != '') {
+                    $q->where('branch_id', $request->branch_id);
+                }
+            } else {
+                $q->where('branch_id', auth()->user()->branch_id);
+            }
+        };
+
+        // Apply branch filter to main query
+        $applyBranch($query);
+
         // Filters
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -37,27 +51,96 @@ class ExpenseController extends Controller
             $query->whereDate('date', '<=', $request->date_to);
         }
 
-        // Branch Filter (Super Admin)
-        if (auth()->user()->isSuperAdmin() && $request->has('branch_id') && $request->branch_id != '') {
-            $query->where('branch_id', $request->branch_id);
-        }
-
         $expenses = $query->latest('date')->paginate(10);
+        
         $categories = \App\Models\ExpenseCategory::all();
         $branches = \App\Models\Branch::orderBy('name')->get();
 
+        // Selected Branch for View Context
+        $selectedBranch = null;
+        if ($request->has('branch_id') && $request->branch_id) {
+            $selectedBranch = \App\Models\Branch::find($request->branch_id);
+        } elseif (!auth()->user()->isSuperAdmin()) {
+            $selectedBranch = auth()->user()->branch;
+        }
+
+        // Helper to get currency totals
+        $getCurrencyTotals = function ($statusFilter = null) use ($applyBranch, $selectedBranch) {
+            // If a specific branch is selected (or user is branch admin), we only need that branch's currency
+            if ($selectedBranch) {
+                $q = Expense::query();
+                $applyBranch($q);
+                if ($statusFilter) {
+                    $statusFilter($q);
+                }
+                $total = $q->sum('amount');
+                return [
+                    (object)[
+                        'currency' => $selectedBranch->currency,
+                        'amount' => $total
+                    ]
+                ];
+            }
+
+            // Global view: Aggregate by branch_id first
+            $q = Expense::query();
+            if ($statusFilter) {
+                $statusFilter($q);
+            }
+
+            // Group by branch_id
+            $results = $q->selectRaw('branch_id, SUM(amount) as total_amount')
+                         ->groupBy('branch_id')
+                         ->get();
+
+            // Map to currencies and aggregate
+            $currencyTotals = [];
+            $branches = \App\Models\Branch::with('settings')->get()->keyBy('id');
+
+            foreach ($results as $result) {
+                $branch = $branches->get($result->branch_id);
+                // Use branch currency or default '$' if branch not found (e.g. deleted branch or null)
+                $currency = $branch ? $branch->currency : '$';
+                
+                if (!isset($currencyTotals[$currency])) {
+                    $currencyTotals[$currency] = 0;
+                }
+                $currencyTotals[$currency] += $result->total_amount;
+            }
+
+            // Convert to array of objects
+            $final = [];
+            foreach ($currencyTotals as $currency => $amount) {
+                $final[] = (object)[
+                    'currency' => $currency,
+                    'amount' => $amount
+                ];
+            }
+            
+            return collect($final);
+        };
+
         // Stats
-        $statsQuery = clone $query;
-        // Remove pagination for stats
-        $statsExpenses = $statsQuery->get();
-        
-        $totalExpenses = $statsExpenses->sum('amount');
-        $pendingCount = $statsExpenses->where('status', 'pending')->count();
-        $thisMonthExpenses = $statsExpenses->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+        $totalExpensesValue = $getCurrencyTotals();
 
-        $currency = \App\Models\Setting::get('currency_symbol', '$');
+        $pendingExpenses = Expense::where('status', 'pending');
+        $applyBranch($pendingExpenses);
+        $pendingCount = $pendingExpenses->count();
+        $pendingExpensesValue = $getCurrencyTotals(function($q) { $q->where('status', 'pending'); });
 
-        return view('expenses.index', compact('expenses', 'categories', 'totalExpenses', 'pendingCount', 'thisMonthExpenses', 'currency', 'branches'));
+        $thisMonthExpensesValue = $getCurrencyTotals(function($q) {
+            $q->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()]);
+        });
+
+        // Also get approved expenses for stats
+        $approvedExpensesValue = $getCurrencyTotals(function($q) { $q->where('status', 'approved'); });
+
+        return view('expenses.index', compact(
+            'expenses', 'categories', 'branches', 
+            'totalExpensesValue', 'pendingCount', 'pendingExpensesValue', 
+            'thisMonthExpensesValue', 'approvedExpensesValue',
+            'selectedBranch'
+        ));
     }
 
     public function create()

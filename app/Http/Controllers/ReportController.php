@@ -173,8 +173,13 @@ class ReportController extends Controller
 
         $transactions = $mappedPayments->merge($mappedExpenses)->sortByDesc('date');
 
+        $selectedBranch = null;
+        if ($branchId) {
+            $selectedBranch = \App\Models\Branch::find($branchId);
+        }
+
         return view('reports.index', compact(
-            'startDate', 'endDate', 'branchId', 'branches',
+            'startDate', 'endDate', 'branchId', 'branches', 'selectedBranch',
             'financials',
             'cashFlowLabels', 'revenueData', 'expenseData',
             'expenseCategoryLabels', 'expenseCategoryData',

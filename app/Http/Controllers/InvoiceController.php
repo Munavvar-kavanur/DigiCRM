@@ -13,6 +13,20 @@ class InvoiceController extends Controller
     {
         $query = Invoice::with(['client', 'project', 'branch.settings']);
 
+        // Helper to apply branch filter
+        $applyBranch = function ($q) use ($request) {
+            if (auth()->user()->isSuperAdmin()) {
+                if ($request->has('branch_id') && $request->branch_id != '') {
+                    $q->where('branch_id', $request->branch_id);
+                }
+            } else {
+                $q->where('branch_id', auth()->user()->branch_id);
+            }
+        };
+
+        // Apply branch filter to main query
+        $applyBranch($query);
+
         // Search
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -33,11 +47,6 @@ class InvoiceController extends Controller
         if ($request->has('client_id') && $request->client_id != '') {
             $query->where('client_id', $request->client_id);
         }
-        
-        // Branch Filter (Super Admin)
-        if ($request->has('branch_id') && $request->branch_id != '') {
-            $query->where('branch_id', $request->branch_id);
-        }
 
         // Date Filter
         if ($request->has('date_from')) {
@@ -48,21 +57,131 @@ class InvoiceController extends Controller
         }
 
         $invoices = $query->latest('issue_date')->paginate(10);
-        $clients = Client::orderBy('name')->get();
+        
+        // Clients & Branches for filters
+        $clientsQuery = Client::orderBy('name');
+        $applyBranch($clientsQuery);
+        $clients = $clientsQuery->get();
+        
         $branches = \App\Models\Branch::orderBy('name')->get();
 
-        // Stats
-        $totalInvoices = Invoice::count();
-        $paidInvoices = Invoice::where('status', 'paid')->count();
-        $unpaidInvoices = Invoice::whereIn('status', ['sent', 'overdue', 'draft'])->count();
+        // Stats Logic with Multi-Currency Support
+        $getCurrencyTotals = function ($status = null) use ($request, $applyBranch) {
+            // If a specific branch is selected (or user is not super admin), use that branch's currency
+            $targetBranchId = null;
+            if (!auth()->user()->isSuperAdmin()) {
+                $targetBranchId = auth()->user()->branch_id;
+            } elseif ($request->has('branch_id') && $request->branch_id != '') {
+                $targetBranchId = $request->branch_id;
+            }
+
+            if ($targetBranchId) {
+                $branch = \App\Models\Branch::find($targetBranchId);
+                $currency = $branch ? $branch->currency : '$';
+                
+                $query = Invoice::where('branch_id', $targetBranchId);
+                if ($status === 'paid') {
+                    $query->where('status', 'paid');
+                } elseif ($status === 'unpaid') {
+                    $query->whereIn('status', ['sent', 'overdue', 'draft']);
+                } elseif ($status === 'outstanding') {
+                    // For outstanding, we want total - paid. 
+                    // But here we'll just sum total_amount for non-paid for simplicity or use logic below
+                    // Actually, simpler to just sum total_amount of all invoices - sum of paid? 
+                    // Let's stick to the requested stats: Total, Received, Outstanding.
+                    // Outstanding = Total - Received.
+                }
+
+                $amount = 0;
+                if ($status === 'paid') {
+                    $amount = Invoice::where('branch_id', $targetBranchId)->where('status', 'paid')->sum('total_amount');
+                } elseif ($status === 'total') {
+                    $amount = Invoice::where('branch_id', $targetBranchId)->sum('total_amount');
+                }
+                
+                return [['currency' => $currency, 'amount' => $amount]];
+            }
+
+            // Global View (Super Admin) - Aggregate by currency
+            $totals = [];
+            $allBranches = \App\Models\Branch::all();
+            
+            // Initialize totals for each currency found
+            $currencyMap = []; // currency_symbol => amount
+
+            foreach ($allBranches as $branch) {
+                $currency = $branch->currency;
+                
+                $branchQuery = Invoice::where('branch_id', $branch->id);
+                if ($status === 'paid') {
+                    $branchQuery->where('status', 'paid');
+                }
+                
+                $amount = $branchQuery->sum('total_amount');
+
+                if (!isset($currencyMap[$currency])) {
+                    $currencyMap[$currency] = 0;
+                }
+                $currencyMap[$currency] += $amount;
+            }
+
+            foreach ($currencyMap as $curr => $amt) {
+                if ($amt > 0) {
+                    $totals[] = ['currency' => $curr, 'amount' => $amt];
+                }
+            }
+            
+            return empty($totals) ? [['currency' => '$', 'amount' => 0]] : $totals;
+        };
+
+        // Calculate Stats
+        $totalInvoices = Invoice::query();
+        $applyBranch($totalInvoices);
+        $totalInvoices = $totalInvoices->count();
+
+        $unpaidInvoices = Invoice::whereIn('status', ['sent', 'overdue', 'draft']);
+        $applyBranch($unpaidInvoices);
+        $unpaidInvoices = $unpaidInvoices->count();
+
+        $totalAmounts = $getCurrencyTotals('total');
+        $receivedAmounts = $getCurrencyTotals('paid');
         
-        $totalAmount = Invoice::sum('total_amount');
-        $receivedAmount = Invoice::where('status', 'paid')->sum('total_amount');
-        $outstandingAmount = $totalAmount - $receivedAmount;
+        // Calculate Outstanding (Total - Received) per currency
+        $outstandingAmounts = [];
+        // Helper to map currency arrays to key-value
+        $mapToKeyVal = function($arr) {
+            $res = [];
+            foreach($arr as $item) $res[$item['currency']] = $item['amount'];
+            return $res;
+        };
+        
+        $totalMap = $mapToKeyVal($totalAmounts);
+        $receivedMap = $mapToKeyVal($receivedAmounts);
+        
+        $allCurrencies = array_unique(array_merge(array_keys($totalMap), array_keys($receivedMap)));
+        
+        foreach ($allCurrencies as $curr) {
+            $tot = $totalMap[$curr] ?? 0;
+            $rec = $receivedMap[$curr] ?? 0;
+            $out = $tot - $rec;
+            if ($out > 0) { // Only show if there is outstanding amount
+                 $outstandingAmounts[] = ['currency' => $curr, 'amount' => $out];
+            }
+        }
+        if (empty($outstandingAmounts)) $outstandingAmounts[] = ['currency' => '$', 'amount' => 0];
 
-        $currency = \App\Models\Setting::get('currency_symbol', '$');
+        // Pass selected branch for view context
+        $selectedBranch = null;
+        if ($request->has('branch_id') && $request->branch_id) {
+            $selectedBranch = \App\Models\Branch::find($request->branch_id);
+        }
 
-        return view('invoices.index', compact('invoices', 'clients', 'branches', 'totalInvoices', 'paidInvoices', 'unpaidInvoices', 'totalAmount', 'receivedAmount', 'outstandingAmount', 'currency'));
+        return view('invoices.index', compact(
+            'invoices', 'clients', 'branches', 
+            'totalInvoices', 'unpaidInvoices', 
+            'totalAmounts', 'receivedAmounts', 'outstandingAmounts',
+            'selectedBranch'
+        ));
     }
 
     public function create()

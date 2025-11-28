@@ -7,9 +7,21 @@ use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $branches = Branch::latest()->paginate(10);
+        $query = Branch::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $branches = $query->latest()->paginate(10);
+        
         return view('branches.index', compact('branches'));
     }
 
