@@ -11,7 +11,7 @@
             window.history.pushState({}, '', url);
         }
     }">
-        <div class="max-w-[1600px] mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-[98%] mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <!-- Sidebar Navigation -->
                 <div class="lg:col-span-3">

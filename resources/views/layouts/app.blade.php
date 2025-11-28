@@ -114,14 +114,14 @@
                 <!-- Page Header -->
                 @if (isset($header))
                     <header class="bg-white dark:bg-gray-800 shadow">
-                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        <div class="max-w-[98%] mx-auto py-6 px-4 sm:px-6 lg:px-8">
                             {{ $header }}
                         </div>
                     </header>
                 @endif
 
                 <!-- Page Content -->
-                <main class="flex-1 overflow-y-auto bg-white/50 dark:bg-gray-800/50 rounded-2xl border border-white/20 shadow-sm p-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
+                <main class="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
                       x-data
                       x-init="$el.classList.add('opacity-100', 'translate-y-0')"
                       class="opacity-0 translate-y-4 transition-all duration-500 ease-out">

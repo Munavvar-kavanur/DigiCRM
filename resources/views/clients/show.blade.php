@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-12" x-data="{ activeTab: 'details' }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-[98%] mx-auto sm:px-6 lg:px-8">
             
             <!-- Header -->
             <div class="flex flex-col md:flex-row justify-between items-center mb-6">

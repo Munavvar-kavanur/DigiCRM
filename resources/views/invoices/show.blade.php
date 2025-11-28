@@ -1,15 +1,12 @@
 <x-app-layout>
-
-
     <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <!-- Action Bar -->
-            <div class="flex justify-between items-center mb-6 no-print">
-                <div class="flex space-x-2">
-                    <a href="{{ route('invoices.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors">
-                        &larr; Back
-                    </a>
-                </div>
+        <div class="max-w-[98%] mx-auto sm:px-6 lg:px-8 space-y-6">
+            
+            <!-- Header & Actions -->
+            <div class="flex justify-between items-center">
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                    {{ __('Invoice Details') }}
+                </h2>
                 <div class="flex space-x-2">
                     <a href="{{ route('invoices.edit', $invoice) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors">
                         Edit
