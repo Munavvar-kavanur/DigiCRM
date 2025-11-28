@@ -1,10 +1,14 @@
 <x-app-layout>
     <div class="py-12" x-data="{ 
-        activeTab: 'details',
+        activeTab: new URLSearchParams(window.location.search).get('tab') || localStorage.getItem('settings_active_tab') || 'details',
         updateTab(tab) {
             this.activeTab = tab;
-            // Optional: Scroll to top of content when switching tabs
-            // document.getElementById('settings-content').scrollTop = 0;
+            localStorage.setItem('settings_active_tab', tab);
+            
+            // Update URL without reloading
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tab);
+            window.history.pushState({}, '', url);
         }
     }">
         <div class="max-w-[1600px] mx-auto sm:px-6 lg:px-8">
@@ -256,9 +260,44 @@
                                             <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">Select a branch to configure its specific settings.</p>
                                         </div>
                                         <div class="w-full sm:w-72">
-                                            <form id="branch-context-form" method="GET" action="{{ route('settings.edit') }}">
+                                            <form id="branch-context-form" onsubmit="return false;">
+                                                <input type="hidden" name="tab" :value="activeTab">
                                                 <div class="relative">
-                                                    <select name="branch_id" onchange="document.getElementById('branch-context-form').submit()" class="block w-full pl-4 pr-10 py-2.5 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg dark:bg-gray-800 dark:text-white shadow-sm">
+                                                    <select name="branch_id" 
+                                                        @change="
+                                                            let branchId = $event.target.value;
+                                                            let url = new URL(window.location.href);
+                                                            url.searchParams.set('branch_id', branchId);
+                                                            url.searchParams.set('tab', activeTab);
+                                                            
+                                                            // Update URL
+                                                            window.history.pushState({}, '', url);
+                                                            
+                                                            // Show loading state (optional)
+                                                            document.getElementById('main-settings-container').style.opacity = '0.5';
+                                                            
+                                                            // Fetch new content
+                                                            fetch(url)
+                                                                .then(response => response.text())
+                                                                .then(html => {
+                                                                    let parser = new DOMParser();
+                                                                    let doc = parser.parseFromString(html, 'text/html');
+                                                                    let newContent = doc.getElementById('main-settings-container').innerHTML;
+                                                                    
+                                                                    document.getElementById('main-settings-container').innerHTML = newContent;
+                                                                    document.getElementById('main-settings-container').style.opacity = '1';
+                                                                    
+                                                                    // Re-initialize Alpine if necessary (usually automatic for new DOM in x-data scope, 
+                                                                    // but since we are replacing innerHTML of a child, we might need to be careful.
+                                                                    // Actually, since the x-data is on the parent, replacing child HTML should be fine 
+                                                                    // as long as we don't destroy the x-data root.)
+                                                                })
+                                                                .catch(err => {
+                                                                    console.error('Error fetching settings:', err);
+                                                                    window.location.reload(); // Fallback
+                                                                });
+                                                        "
+                                                        class="block w-full pl-4 pr-10 py-2.5 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg dark:bg-gray-800 dark:text-white shadow-sm">
                                                         @foreach($branches as $branch)
                                                             <option value="{{ $branch->id }}" {{ $branchId == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
                                                         @endforeach
@@ -269,9 +308,11 @@
                                     </div>
                                 </div>
                                 
+                                <div id="main-settings-container">
                                 <!-- Hidden input for the main form to persist branch_id on save -->
                                 <input type="hidden" name="branch_id" value="{{ $branchId }}" form="main-settings-form">
                             @elseif(auth()->user()->branch_id)
+                                <div id="main-settings-container">
                                 <div class="mb-8 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border-l-4 border-green-500 dark:border-green-400 flex items-center">
                                     <div class="flex-shrink-0 mr-3">
                                         <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,11 +324,14 @@
                                         <p class="text-sm text-green-700 dark:text-green-300">You are editing settings for <strong>{{ auth()->user()->branch->name }}</strong>. These will override global defaults.</p>
                                     </div>
                                 </div>
+                            @else
+                                <div id="main-settings-container">
                             @endif
                             
                             <form id="main-settings-form" method="post" action="{{ route('settings.update') }}" class="space-y-8" enctype="multipart/form-data">
                                 @csrf
                                 @method('patch')
+                                <input type="hidden" name="tab" :value="activeTab">
 
                                 <!-- Company Details Tab -->
                                 <div x-show="activeTab === 'details'" class="space-y-8">
@@ -546,6 +590,21 @@
                                     </div>
                                 </div>
 
+                                <div class="flex items-center gap-4" x-show="['details', 'branding', 'localization'].includes(activeTab)">
+                                    <x-primary-button>{{ __('Save Settings') }}</x-primary-button>
+
+                                    @if (session('status') === 'settings-updated')
+                                        <p
+                                            x-data="{ show: true }"
+                                            x-show="show"
+                                            x-transition
+                                            x-init="setTimeout(() => show = false, 2000)"
+                                            class="text-sm text-gray-600 dark:text-gray-400"
+                                        >{{ __('Saved.') }}</p>
+                                    @endif
+                                </div>
+                                </form>
+
                             <!-- Expense Categories Tab -->
                             <div x-show="activeTab === 'expense_categories'" class="space-y-8" x-cloak>
                                 <div class="border-b border-gray-100 dark:border-gray-700 pb-5 mb-6">
@@ -788,17 +847,6 @@
                     <div class="sm:flex sm:items-start">
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
-                                Crop Image
-                            </h3>
-                            <div class="mt-4 w-full h-96 bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden">
-                                <img id="cropper-image" src="" alt="Image to crop" class="max-w-full h-full object-contain">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-gray-50 dark:bg-gray-700/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" @click="cropImage()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        Crop & Save
                     </button>
                     <button type="button" @click="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                         Cancel

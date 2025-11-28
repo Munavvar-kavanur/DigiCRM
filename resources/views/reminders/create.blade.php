@@ -32,6 +32,10 @@
                 <form method="POST" action="{{ route('reminders.store') }}" class="p-8">
                     @csrf
                     <div class="space-y-8">
+                        @if(isset($related_id) && isset($related_type))
+                            <input type="hidden" name="related_id" value="{{ $related_id }}">
+                            <input type="hidden" name="related_type" value="{{ $related_type }}">
+                        @endif
                         
                         <!-- Reminder Details Section -->
                         <section class="relative">
@@ -52,7 +56,7 @@
                                             <select id="branch_id" name="branch_id" class="block w-full pl-3 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-900 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm transition-all">
                                                 <option value="">Select Branch</option>
                                                 @foreach($branches as $branch)
-                                                    <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                                    <option value="{{ $branch->id }}" {{ (old('branch_id') ?? $branch_id) == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -84,12 +88,12 @@
                                             </svg>
                                         </div>
                                         <select id="type" name="type" class="block w-full pl-10 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-amber-500 focus:ring-amber-500 rounded-md shadow-sm transition-all">
-                                            <option value="custom" {{ old('type') == 'custom' ? 'selected' : '' }}>Custom</option>
-                                            <option value="invoice" {{ old('type') == 'invoice' ? 'selected' : '' }}>Invoice</option>
-                                            <option value="project" {{ old('type') == 'project' ? 'selected' : '' }}>Project</option>
-                                            <option value="estimate" {{ old('type') == 'estimate' ? 'selected' : '' }}>Estimate</option>
-                                            <option value="payroll" {{ old('type') == 'payroll' ? 'selected' : '' }}>Payroll</option>
-                                            <option value="expense" {{ old('type') == 'expense' ? 'selected' : '' }}>Expense</option>
+                                            <option value="custom" {{ (old('type') ?? $type) == 'custom' ? 'selected' : '' }}>Custom</option>
+                                            <option value="invoice" {{ (old('type') ?? $type) == 'invoice' ? 'selected' : '' }}>Invoice</option>
+                                            <option value="project" {{ (old('type') ?? $type) == 'project' ? 'selected' : '' }}>Project</option>
+                                            <option value="estimate" {{ (old('type') ?? $type) == 'estimate' ? 'selected' : '' }}>Estimate</option>
+                                            <option value="payroll" {{ (old('type') ?? $type) == 'payroll' ? 'selected' : '' }}>Payroll</option>
+                                            <option value="expense" {{ (old('type') ?? $type) == 'expense' ? 'selected' : '' }}>Expense</option>
                                         </select>
                                     </div>
                                     <x-input-error :messages="$errors->get('type')" class="mt-2" />

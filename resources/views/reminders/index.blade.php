@@ -85,8 +85,17 @@
 
                             <!-- Filters -->
                             <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                                @if(auth()->user()->isSuperAdmin())
+                                    <select name="branch_id" id="branch_id" onchange="this.form.submit()" class="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-gray-300">
+                                        <option value="">All Branches</option>
+                                        @foreach($branches as $branch)
+                                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+
                                 <select name="status" id="status" onchange="this.form.submit()" class="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">All Statuses</option>
+                                    <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>All Statuses</option>
                                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                                     <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                                     <option value="dismissed" {{ request('status') == 'dismissed' ? 'selected' : '' }}>Dismissed</option>
@@ -98,9 +107,14 @@
                                     <option value="meeting" {{ request('type') == 'meeting' ? 'selected' : '' }}>Meeting</option>
                                     <option value="email" {{ request('type') == 'email' ? 'selected' : '' }}>Email</option>
                                     <option value="deadline" {{ request('type') == 'deadline' ? 'selected' : '' }}>Deadline</option>
+                                    <option value="invoice" {{ request('type') == 'invoice' ? 'selected' : '' }}>Invoice</option>
+                                    <option value="project" {{ request('type') == 'project' ? 'selected' : '' }}>Project</option>
+                                    <option value="estimate" {{ request('type') == 'estimate' ? 'selected' : '' }}>Estimate</option>
+                                    <option value="payroll" {{ request('type') == 'payroll' ? 'selected' : '' }}>Payroll</option>
+                                    <option value="expense" {{ request('type') == 'expense' ? 'selected' : '' }}>Expense</option>
                                 </select>
 
-                                @if(request('search') || request('status') || request('type'))
+                                @if(request('search') || request('status') || request('type') || request('branch_id'))
                                     <a href="{{ route('reminders.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                         Clear
                                     </a>
@@ -121,6 +135,9 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                    @if(auth()->user()->isSuperAdmin())
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Branch</th>
+                                    @endif
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
@@ -138,9 +155,14 @@
                                                 {{ ucfirst($reminder->type) }}
                                             </span>
                                         </td>
+                                        @if(auth()->user()->isSuperAdmin())
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                {{ $reminder->branch->name ?? 'N/A' }}
+                                            </td>
+                                        @endif
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             <div class="{{ $reminder->reminder_date->isPast() && $reminder->status == 'pending' ? 'text-red-600 font-bold' : '' }}">
-                                                {{ $reminder->reminder_date->format('M d, Y') }}
+                                                {{ $reminder->reminder_date->format('M d, Y h:i A') }}
                                             </div>
                                             @if($reminder->is_recurring)
                                                 <div class="text-xs text-indigo-500 mt-1">
@@ -190,7 +212,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
+                                        <td colspan="6" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
                                             <div class="flex flex-col items-center justify-center">
                                                 <svg class="w-12 h-12 mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

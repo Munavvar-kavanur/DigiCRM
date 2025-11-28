@@ -155,8 +155,10 @@
                                                     </div>
                                                 </div>
                                                 <div class="ml-4">
-                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $client->name }}</div>
-                                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $client->company_name }}</div>
+                                                    <a href="{{ route('clients.show', $client) }}" class="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                                                        {{ $client->company_name }}
+                                                    </a>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $client->name }}</div>
                                                 </div>
                                             </div>
                                         </td>

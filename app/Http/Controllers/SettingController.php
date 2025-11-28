@@ -87,6 +87,6 @@ class SettingController extends Controller
             Setting::set($key, $value, $branchId);
         }
 
-        return redirect()->route('settings.edit', ['branch_id' => $branchId])->with('success', 'Settings updated successfully.');
+        return redirect()->route('settings.edit', ['branch_id' => $branchId, 'tab' => $request->tab])->with('success', 'Settings updated successfully.');
     }
 }
