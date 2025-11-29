@@ -56,12 +56,12 @@ class EmployeeController extends Controller
                 $applyBranch($q);
                 
                 $total = $q->sum($column);
-                return [
+                return collect([
                     (object)[
                         'currency' => $selectedBranch->currency,
                         'amount' => $total
                     ]
-                ];
+                ]);
             }
 
             // Global view: Aggregate by branch_id first

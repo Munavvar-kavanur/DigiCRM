@@ -145,7 +145,7 @@ class ReportController extends Controller
         $expenseCategoryData = $expensesByCategory->pluck('total');
 
         // --- Detailed Transactions ---
-        $mappedPayments = $payments->map(function ($payment) {
+        $mappedPayments = $payments->toBase()->map(function ($payment) {
              $currency = $payment->invoice && $payment->invoice->branch ? $payment->invoice->branch->currency : \App\Models\Setting::get('currency_symbol', '$');
              return [
                 'date' => $payment->payment_date,
@@ -158,7 +158,7 @@ class ReportController extends Controller
             ];
         });
 
-        $mappedExpenses = $expenses->map(function ($expense) {
+        $mappedExpenses = $expenses->toBase()->map(function ($expense) {
             $currency = $expense->branch ? $expense->branch->currency : \App\Models\Setting::get('currency_symbol', '$');
             return [
                 'date' => $expense->date,

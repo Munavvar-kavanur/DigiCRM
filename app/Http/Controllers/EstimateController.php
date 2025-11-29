@@ -83,12 +83,12 @@ class EstimateController extends Controller
                     $statusFilter($q);
                 }
                 $total = $q->sum('total_amount');
-                return [
+                return collect([
                     (object)[
                         'currency' => $selectedBranch->currency,
                         'amount' => $total
                     ]
-                ];
+                ]);
             }
 
             // Global view: Aggregate by branch_id first
