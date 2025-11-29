@@ -20,6 +20,7 @@ class Client extends Model
         'branch_id',
         'tax_id',
         'notes',
+        'website',
     ];
 
     public function projects()

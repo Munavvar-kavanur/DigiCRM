@@ -5,7 +5,7 @@
             <!-- Header -->
             <div class="flex flex-col md:flex-row justify-between items-center mb-6">
                 <h2 class="font-semibold text-2xl text-gray-800 dark:text-gray-200 leading-tight mb-4 md:mb-0">
-                    {{ $client->name }}
+                    {{ $client->company_name ?: $client->name }}
                 </h2>
                 <div class="flex space-x-3">
                     <a href="{{ route('clients.index') }}" wire:navigate class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-sm text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">

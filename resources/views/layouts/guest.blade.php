@@ -29,7 +29,13 @@
                 <!-- Content -->
                 <div class="relative z-10">
                     <div class="flex items-center gap-3">
-                        @if(file_exists(public_path('images/logo/logo.png')))
+                        @php
+                            $logoLight = \App\Models\Setting::get('crm_logo_light');
+                        @endphp
+                        
+                        @if($logoLight)
+                            <img src="{{ asset('storage/' . $logoLight) }}" alt="{{ config('app.name') }}" class="h-10 w-auto bg-white/10 rounded-lg p-1">
+                        @elseif(file_exists(public_path('images/logo/logo.png')))
                             <img src="{{ asset('images/logo/logo.png') }}" alt="{{ config('app.name') }}" class="h-10 w-auto bg-white/10 rounded-lg p-1">
                         @elseif(file_exists(public_path('images/logo/logo.svg')))
                             <img src="{{ asset('images/logo/logo.svg') }}" alt="{{ config('app.name') }}" class="h-10 w-auto bg-white/10 rounded-lg p-1">

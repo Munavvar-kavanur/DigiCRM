@@ -2,14 +2,32 @@
     <!-- Mobile Logo (Visible only on small screens) -->
     <div class="lg:hidden text-center mb-8">
         <div class="flex justify-center mb-4">
-            @if(file_exists(public_path('images/logo/logo.png')))
-                <img src="{{ asset('images/logo/logo.png') }}" alt="{{ config('app.name') }}" class="h-12 w-auto">
-            @elseif(file_exists(public_path('images/logo/logo.svg')))
-                <img src="{{ asset('images/logo/logo.svg') }}" alt="{{ config('app.name') }}" class="h-12 w-auto">
-            @else
-                <div class="h-12 w-12 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg">
-                    <span class="text-white text-xl font-bold">DC</span>
-                </div>
+            @php
+                $logoLight = \App\Models\Setting::get('crm_logo_light');
+                $logoDark = \App\Models\Setting::get('crm_logo_dark');
+            @endphp
+
+            @if($logoDark)
+                <img src="{{ asset('storage/' . $logoDark) }}" alt="{{ config('app.name') }}" class="h-12 w-auto dark:hidden">
+            @endif
+            @if($logoLight)
+                <img src="{{ asset('storage/' . $logoLight) }}" alt="{{ config('app.name') }}" class="h-12 w-auto hidden dark:block">
+            @endif
+
+            @if(!$logoDark && !$logoLight)
+                @if(file_exists(public_path('images/logo/logo.png')))
+                    <img src="{{ asset('images/logo/logo.png') }}" alt="{{ config('app.name') }}" class="h-12 w-auto">
+                @elseif(file_exists(public_path('images/logo/logo.svg')))
+                    <img src="{{ asset('images/logo/logo.svg') }}" alt="{{ config('app.name') }}" class="h-12 w-auto">
+                @else
+                    <div class="h-12 w-12 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg">
+                        <span class="text-white text-xl font-bold">DC</span>
+                    </div>
+                @endif
+            @elseif(!$logoDark && $logoLight)
+                 <img src="{{ asset('storage/' . $logoLight) }}" alt="{{ config('app.name') }}" class="h-12 w-auto dark:hidden">
+            @elseif($logoDark && !$logoLight)
+                 <img src="{{ asset('storage/' . $logoDark) }}" alt="{{ config('app.name') }}" class="h-12 w-auto hidden dark:block">
             @endif
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ config('app.name', 'DigiCRM') }}</h2>

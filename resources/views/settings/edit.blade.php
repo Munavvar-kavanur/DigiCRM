@@ -192,6 +192,39 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <h4 class="text-base font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mt-6">Invoice Branding</h4>
+                                    <div class="space-y-6 mt-4">
+                                        <!-- Invoice Logo Light -->
+                                        <div>
+                                            <x-input-label for="sa_invoice_logo_light" :value="__('Invoice Logo (Light Mode)')" />
+                                            <div class="mt-2 flex items-center space-x-4">
+                                                <div class="flex-shrink-0 w-32 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                                    @if(isset($superAdminSettings['invoice_logo_light']))
+                                                        <img src="{{ asset('storage/' . $superAdminSettings['invoice_logo_light']) }}" alt="Invoice Logo Light" class="max-h-8 max-w-full object-contain">
+                                                    @else
+                                                        <span class="text-xs text-gray-400">No Logo</span>
+                                                    @endif
+                                                </div>
+                                                <input type="file" id="sa_invoice_logo_light" name="invoice_logo_light" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 dark:file:bg-cyan-900/50 dark:file:text-cyan-300">
+                                            </div>
+                                        </div>
+
+                                        <!-- Invoice Logo Dark -->
+                                        <div>
+                                            <x-input-label for="sa_invoice_logo_dark" :value="__('Invoice Logo (Dark Mode)')" />
+                                            <div class="mt-2 flex items-center space-x-4">
+                                                <div class="flex-shrink-0 w-32 h-12 bg-gray-900 dark:bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700 dark:border-gray-600">
+                                                    @if(isset($superAdminSettings['invoice_logo_dark']))
+                                                        <img src="{{ asset('storage/' . $superAdminSettings['invoice_logo_dark']) }}" alt="Invoice Logo Dark" class="max-h-8 max-w-full object-contain">
+                                                    @else
+                                                        <span class="text-xs text-gray-500">No Logo</span>
+                                                    @endif
+                                                </div>
+                                                <input type="file" id="sa_invoice_logo_dark" name="invoice_logo_dark" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 dark:file:bg-cyan-900/50 dark:file:text-cyan-300">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -368,6 +401,39 @@
                                                         @endif
                                                     </div>
                                                     <input type="file" id="crm_logo_dark" name="crm_logo_dark" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 dark:file:bg-cyan-900/50 dark:file:text-cyan-300">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-gray-50 dark:bg-gray-700/30 p-8 rounded-2xl border border-gray-100 dark:border-gray-700">
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6">Invoice Branding</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div>
+                                                <x-input-label for="invoice_logo_light" :value="__('Invoice Logo (Light Mode)')" />
+                                                <div class="mt-2 flex items-center space-x-4">
+                                                    <div class="flex-shrink-0 w-32 h-12 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                                        @if(isset($settings['invoice_logo_light']))
+                                                            <img src="{{ asset('storage/' . $settings['invoice_logo_light']) }}" alt="Invoice Logo Light" class="max-h-8 max-w-full object-contain">
+                                                        @else
+                                                            <span class="text-xs text-gray-400">No Logo</span>
+                                                        @endif
+                                                    </div>
+                                                    <input type="file" id="invoice_logo_light" name="invoice_logo_light" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 dark:file:bg-cyan-900/50 dark:file:text-cyan-300">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <x-input-label for="invoice_logo_dark" :value="__('Invoice Logo (Dark Mode)')" />
+                                                <div class="mt-2 flex items-center space-x-4">
+                                                    <div class="flex-shrink-0 w-32 h-12 bg-gray-900 dark:bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700 dark:border-gray-600">
+                                                        @if(isset($settings['invoice_logo_dark']))
+                                                            <img src="{{ asset('storage/' . $settings['invoice_logo_dark']) }}" alt="Invoice Logo Dark" class="max-h-8 max-w-full object-contain">
+                                                        @else
+                                                            <span class="text-xs text-gray-500">No Logo</span>
+                                                        @endif
+                                                    </div>
+                                                    <input type="file" id="invoice_logo_dark" name="invoice_logo_dark" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 dark:file:bg-cyan-900/50 dark:file:text-cyan-300">
                                                 </div>
                                             </div>
                                         </div>
