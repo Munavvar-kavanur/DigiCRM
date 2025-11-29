@@ -61,6 +61,10 @@ Route::middleware('auth')->group(function () {
     Route::post('payroll-types', [\App\Http\Controllers\PayrollTypeController::class, 'store'])->name('payroll-types.store');
     Route::delete('payroll-types/{payrollType}', [\App\Http\Controllers\PayrollTypeController::class, 'destroy'])->name('payroll-types.destroy');
 
+    Route::post('expense-payers', [\App\Http\Controllers\ExpensePayerController::class, 'store'])->name('expense-payers.store');
+    Route::put('expense-payers/{expensePayer}', [\App\Http\Controllers\ExpensePayerController::class, 'update'])->name('expense-payers.update');
+    Route::delete('expense-payers/{expensePayer}', [\App\Http\Controllers\ExpensePayerController::class, 'destroy'])->name('expense-payers.destroy');
+
     Route::post('projects/{project}/tasks', [\App\Http\Controllers\TaskController::class, 'store'])->name('projects.tasks.store');
     Route::put('tasks/{task}', [\App\Http\Controllers\TaskController::class, 'update'])->name('tasks.update');
     Route::delete('tasks/{task}', [\App\Http\Controllers\TaskController::class, 'destroy'])->name('tasks.destroy');

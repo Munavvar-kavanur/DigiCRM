@@ -12,8 +12,8 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+        $startDate = $request->filled('start_date') ? $request->input('start_date') : Carbon::now()->startOfMonth()->format('Y-m-d');
+        $endDate = $request->filled('end_date') ? $request->input('end_date') : Carbon::now()->endOfMonth()->format('Y-m-d');
         $branchId = $request->input('branch_id');
 
         $user = auth()->user();

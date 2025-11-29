@@ -49,10 +49,11 @@ class InvoiceController extends Controller
         }
 
         // Date Filter
-        if ($request->has('date_from')) {
+        // Date Filter
+        if ($request->filled('date_from')) {
             $query->whereDate('issue_date', '>=', $request->date_from);
         }
-        if ($request->has('date_to')) {
+        if ($request->filled('date_to')) {
             $query->whereDate('issue_date', '<=', $request->date_to);
         }
 

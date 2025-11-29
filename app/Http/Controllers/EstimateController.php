@@ -49,10 +49,11 @@ class EstimateController extends Controller
         }
         
         // Date Filter
-        if ($request->has('date_from')) {
+        // Date Filter
+        if ($request->filled('date_from')) {
             $query->whereDate('valid_until', '>=', $request->date_from);
         }
-        if ($request->has('date_to')) {
+        if ($request->filled('date_to')) {
             $query->whereDate('valid_until', '<=', $request->date_to);
         }
 

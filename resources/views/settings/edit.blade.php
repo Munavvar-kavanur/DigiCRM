@@ -72,6 +72,14 @@
                             Employee Types
                         </button>
 
+                        <!-- Expense Payers -->
+                        <button @click="updateTab('expense_payers')" 
+                            :class="{ 'bg-white dark:bg-gray-800 shadow-md text-cyan-600 dark:text-cyan-400': activeTab === 'expense_payers', 'hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-400': activeTab !== 'expense_payers' }" 
+                            class="group flex items-center px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 w-full text-left">
+                            <svg class="w-5 h-5 mr-3" :class="{ 'text-cyan-600 dark:text-cyan-400': activeTab === 'expense_payers', 'text-gray-400 group-hover:text-gray-500': activeTab !== 'expense_payers' }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            Expense Payers
+                        </button>
+
                         <!-- Payroll Types -->
                         <button @click="updateTab('payroll_types')" 
                             :class="{ 'bg-white dark:bg-gray-800 shadow-md text-cyan-600 dark:text-cyan-400': activeTab === 'payroll_types', 'hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-400': activeTab !== 'payroll_types' }" 
@@ -528,6 +536,73 @@
                                                     </tr>
                                                 @empty
                                                     <tr><td colspan="3" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No employee types found.</td></tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expense Payers Tab -->
+                        <div x-show="activeTab === 'expense_payers'" class="space-y-8" x-cloak>
+                            <div class="border-b border-gray-100 dark:border-gray-700 pb-5 mb-6">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Expense Payers</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage people who can pay for expenses.</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div class="lg:col-span-1">
+                                    <div class="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 sticky top-6">
+                                        <h4 class="text-base font-bold text-gray-900 dark:text-white mb-4">Add New Payer</h4>
+                                        <form action="{{ route('expense-payers.store') }}" method="POST" class="space-y-4">
+                                            @csrf
+                                            <input type="hidden" name="branch_id" value="{{ $branchId }}">
+                                            <div>
+                                                <x-input-label for="payer_name" :value="__('Name')" />
+                                                <x-text-input id="payer_name" name="name" type="text" class="mt-2 block w-full" required placeholder="e.g., John Doe" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="payer_mobile" :value="__('Mobile Number')" />
+                                                <x-text-input id="payer_mobile" name="mobile_number" type="text" class="mt-2 block w-full" placeholder="e.g., +1234567890" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="payer_description" :value="__('Description')" />
+                                                <x-text-input id="payer_description" name="description" type="text" class="mt-2 block w-full" placeholder="Optional description..." />
+                                            </div>
+                                            <x-primary-button class="w-full justify-center">{{ __('Add Payer') }}</x-primary-button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+                                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                                                <tr>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mobile</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                                @forelse($expensePayers as $payer)
+                                                    <tr class="group hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">{{ $payer->name }}</span>
+                                                        </td>
+                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $payer->mobile_number ?? '-' }}</td>
+                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $payer->description ?? '-' }}</td>
+                                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                            <form action="{{ route('expense-payers.destroy', $payer) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure?');">
+                                                                @csrf @method('DELETE')
+                                                                <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr><td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No expense payers found.</td></tr>
                                                 @endforelse
                                             </tbody>
                                         </table>

@@ -9,7 +9,7 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Expense::with(['user', 'category', 'branch.settings']);
+        $query = Expense::with(['user', 'category', 'branch.settings', 'paidBy']);
 
         // Helper to apply branch filter
         $applyBranch = function ($q) use ($request) {
@@ -43,11 +43,15 @@ class ExpenseController extends Controller
             $query->where('expense_category_id', $request->category_id);
         }
 
-        if ($request->has('date_from')) {
+        if ($request->has('paid_by_id') && $request->paid_by_id != '') {
+            $query->where('paid_by_id', $request->paid_by_id);
+        }
+
+        if ($request->filled('date_from')) {
             $query->whereDate('date', '>=', $request->date_from);
         }
 
-        if ($request->has('date_to')) {
+        if ($request->filled('date_to')) {
             $query->whereDate('date', '<=', $request->date_to);
         }
 
@@ -55,6 +59,7 @@ class ExpenseController extends Controller
         
         $categories = \App\Models\ExpenseCategory::all();
         $branches = \App\Models\Branch::orderBy('name')->get();
+        $expensePayers = \App\Models\ExpensePayer::all();
 
         // Selected Branch for View Context
         $selectedBranch = null;
@@ -136,7 +141,7 @@ class ExpenseController extends Controller
         $approvedExpensesValue = $getCurrencyTotals(function($q) { $q->where('status', 'approved'); });
 
         return view('expenses.index', compact(
-            'expenses', 'categories', 'branches', 
+            'expenses', 'categories', 'branches', 'expensePayers',
             'totalExpensesValue', 'pendingCount', 'pendingExpensesValue', 
             'thisMonthExpensesValue', 'approvedExpensesValue',
             'selectedBranch'
@@ -148,7 +153,8 @@ class ExpenseController extends Controller
         $categories = \App\Models\ExpenseCategory::all();
         $currency = \App\Models\Setting::get('currency_symbol', '$');
         $branches = \App\Models\Branch::orderBy('name')->get();
-        return view('expenses.create', compact('categories', 'currency', 'branches'));
+        $expensePayers = \App\Models\ExpensePayer::all();
+        return view('expenses.create', compact('categories', 'currency', 'branches', 'expensePayers'));
     }
 
     public function store(Request $request)
@@ -168,6 +174,7 @@ class ExpenseController extends Controller
             'receipt' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
             'status' => 'required|in:pending,approved,rejected',
             'branch_id' => 'nullable|exists:branches,id',
+            'paid_by_id' => 'nullable|exists:expense_payers,id',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -197,7 +204,8 @@ class ExpenseController extends Controller
         $categories = \App\Models\ExpenseCategory::all();
         $currency = \App\Models\Setting::get('currency_symbol', '$');
         $branches = \App\Models\Branch::orderBy('name')->get();
-        return view('expenses.edit', compact('expense', 'categories', 'currency', 'branches'));
+        $expensePayers = \App\Models\ExpensePayer::all();
+        return view('expenses.edit', compact('expense', 'categories', 'currency', 'branches', 'expensePayers'));
     }
 
     public function update(Request $request, Expense $expense)
@@ -217,6 +225,7 @@ class ExpenseController extends Controller
             'receipt' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
             'status' => 'required|in:pending,approved,rejected',
             'branch_id' => 'nullable|exists:branches,id',
+            'paid_by_id' => 'nullable|exists:expense_payers,id',
         ]);
 
         $validated['is_recurring'] = $request->has('is_recurring');

@@ -37,8 +37,9 @@ class SettingController extends Controller
         $expenseCategories = \App\Models\ExpenseCategory::where('branch_id', $branchId)->get();
         $employeeTypes = \App\Models\EmployeeType::where('branch_id', $branchId)->get();
         $payrollTypes = \App\Models\PayrollType::where('branch_id', $branchId)->get();
+        $expensePayers = \App\Models\ExpensePayer::where('branch_id', $branchId)->get();
         
-        return view('settings.edit', compact('settings', 'superAdminSettings', 'expenseCategories', 'employeeTypes', 'payrollTypes', 'branches', 'branchId'));
+        return view('settings.edit', compact('settings', 'superAdminSettings', 'expenseCategories', 'employeeTypes', 'payrollTypes', 'expensePayers', 'branches', 'branchId'));
     }
 
     public function update(Request $request)

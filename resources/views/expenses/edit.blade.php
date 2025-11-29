@@ -134,6 +134,61 @@
                                     <x-input-error :messages="$errors->get('merchant')" class="mt-2" />
                                 </div>
 
+                                <!-- Paid By -->
+                                <div class="group">
+                                    <x-input-label for="paid_by_id" :value="__('Paid By')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" />
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg class="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <select id="paid_by_id" name="paid_by_id" class="block w-full pl-10 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-900 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm transition-all">
+                                            <option value="">Select Payer</option>
+                                            @foreach($expensePayers as $payer)
+                                                <option value="{{ $payer->id }}" {{ old('paid_by_id', $expense->paid_by_id) == $payer->id ? 'selected' : '' }}>{{ $payer->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <x-input-error :messages="$errors->get('paid_by_id')" class="mt-2" />
+                                </div>
+
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const branchSelect = document.getElementById('branch_id');
+                                        const payerSelect = document.getElementById('paid_by_id');
+                                        const allPayers = @json($expensePayers);
+                                        const currentPayerId = '{{ old('paid_by_id', $expense->paid_by_id) }}';
+                                        
+                                        function updatePayers() {
+                                            const selectedBranchId = branchSelect ? branchSelect.value : '{{ $expense->branch_id }}';
+                                            
+                                            // Clear existing options except the first one
+                                            while (payerSelect.options.length > 1) {
+                                                payerSelect.remove(1);
+                                            }
+                                            
+                                            // Filter and add payers
+                                            allPayers.forEach(payer => {
+                                                if (selectedBranchId && payer.branch_id == selectedBranchId) {
+                                                    const option = new Option(payer.name, payer.id);
+                                                    if (currentPayerId == payer.id) {
+                                                        option.selected = true;
+                                                    }
+                                                    payerSelect.add(option);
+                                                }
+                                            });
+                                        }
+
+                                        if (branchSelect) {
+                                            branchSelect.addEventListener('change', updatePayers);
+                                        }
+                                        
+                                        // Initial load
+                                        updatePayers();
+                                    });
+                                </script>
+
                                 <!-- Reference -->
                                 <div class="group">
                                     <x-input-label for="reference" :value="__('Reference #')" class="mb-2 text-gray-600 dark:text-gray-400 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" />

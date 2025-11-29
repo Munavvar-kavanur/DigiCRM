@@ -26,6 +26,7 @@ class Expense extends Model
         'merchant',
         'reference',
         'branch_id',
+        'paid_by_id',
     ];
 
     protected $casts = [
@@ -58,5 +59,10 @@ class Expense extends Model
     public function category()
     {
         return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
+    }
+
+    public function paidBy()
+    {
+        return $this->belongsTo(ExpensePayer::class, 'paid_by_id');
     }
 }

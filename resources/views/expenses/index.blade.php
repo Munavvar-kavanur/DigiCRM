@@ -145,6 +145,13 @@
                             @endforeach
                         </select>
 
+                        <select name="paid_by_id" onchange="this.form.submit()" class="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-2.5 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-rose-500 text-sm font-medium cursor-pointer max-w-[200px]">
+                            <option value="">All Payers</option>
+                            @foreach($expensePayers as $payer)
+                                <option value="{{ $payer->id }}" {{ request('paid_by_id') == $payer->id ? 'selected' : '' }}>{{ $payer->name }}</option>
+                            @endforeach
+                        </select>
+
                         @if(auth()->user()->isSuperAdmin())
                             <select name="branch_id" onchange="this.form.submit()" class="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-2.5 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-rose-500 text-sm font-medium cursor-pointer">
                                 <option value="">All Branches</option>
@@ -155,9 +162,9 @@
                         @endif
 
                         <div class="flex items-center gap-2">
-                            <input type="date" name="date_from" value="{{ request('date_from') }}" class="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-2.5 px-3 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-rose-500 text-sm font-medium" placeholder="From">
+                            <input type="date" name="date_from" value="{{ request('date_from') }}" onchange="this.form.submit()" class="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-2.5 px-3 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-rose-500 text-sm font-medium" placeholder="From">
                             <span class="text-gray-400">-</span>
-                            <input type="date" name="date_to" value="{{ request('date_to') }}" class="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-2.5 px-3 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-rose-500 text-sm font-medium" placeholder="To">
+                            <input type="date" name="date_to" value="{{ request('date_to') }}" onchange="this.form.submit()" class="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-2.5 px-3 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-rose-500 text-sm font-medium" placeholder="To">
                         </div>
 
                         @if(request('search') || request('status') || request('category_id') || request('branch_id') || request('date_from') || request('date_to'))
@@ -196,6 +203,7 @@
                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Branch</th>
                             @endif
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Paid By</th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
                             <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
@@ -236,6 +244,9 @@
                                     @else
                                         <span class="text-sm text-gray-500 dark:text-gray-400">{{ $expense->category ?? '-' }}</span>
                                     @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $expense->paidBy->name ?? '-' }}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @php
