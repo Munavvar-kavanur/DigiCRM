@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
     Route::post('expense-categories', [\App\Http\Controllers\ExpenseCategoryController::class, 'store'])->name('expense-categories.store');
+    Route::put('expense-categories/{expenseCategory}', [\App\Http\Controllers\ExpenseCategoryController::class, 'update'])->name('expense-categories.update');
     Route::delete('expense-categories/{expenseCategory}', [\App\Http\Controllers\ExpenseCategoryController::class, 'destroy'])->name('expense-categories.destroy');
     
     Route::post('employee-types', [\App\Http\Controllers\EmployeeTypeController::class, 'store'])->name('employee-types.store');

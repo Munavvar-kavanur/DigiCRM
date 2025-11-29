@@ -37,6 +37,29 @@ class ExpenseCategoryController extends Controller
         return redirect()->route('settings.edit', ['tab' => 'categories'])->with('success', 'Category added successfully.');
     }
 
+    public function update(Request $request, ExpenseCategory $expenseCategory)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:255',
+            'color' => 'required|string|max:7', // Hex color
+        ]);
+
+        // Check uniqueness within branch, excluding current category
+        $exists = ExpenseCategory::where('name', $request->name)
+            ->where('branch_id', $expenseCategory->branch_id)
+            ->where('id', '!=', $expenseCategory->id)
+            ->exists();
+            
+        if ($exists) {
+            return back()->withErrors(['name' => 'The name has already been taken for this branch.']);
+        }
+
+        $expenseCategory->update($validated);
+
+        return redirect()->route('settings.edit', ['tab' => 'categories'])->with('success', 'Category updated successfully.');
+    }
+
     public function destroy(ExpenseCategory $expenseCategory)
     {
         // Check if category is in use

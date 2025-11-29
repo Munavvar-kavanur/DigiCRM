@@ -135,6 +135,10 @@
                                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Reference #</dt>
                                         <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $expense->reference ?? 'N/A' }}</dd>
                                     </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Paid By</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $expense->payer ? $expense->payer->name : 'N/A' }}</dd>
+                                    </div>
                                     @if($expense->is_recurring)
                                         <div>
                                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Recurring</dt>
