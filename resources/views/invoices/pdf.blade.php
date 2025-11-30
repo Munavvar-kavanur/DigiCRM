@@ -8,7 +8,7 @@
             margin: 0px;
         }
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-family: 'DejaVu Sans', sans-serif;
             color: #444;
             line-height: 1.5;
             font-size: 13px;
