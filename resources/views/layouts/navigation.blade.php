@@ -1,7 +1,7 @@
 <div class="h-full flex flex-col justify-between">
     <div>
         <!-- Logo -->
-        <div class="flex items-center h-16 px-4 transition-all duration-300" :class="sidebarCollapsed ? 'justify-center' : 'justify-between'">
+        <div class="flex items-center justify-center h-16 px-4 transition-all duration-300">
             <!-- Logo -->
             <div class="shrink-0 flex items-center transform transition-transform duration-300 hover:scale-105">
                 <a href="{{ route('dashboard') }}" wire:navigate>
