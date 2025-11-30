@@ -85,4 +85,19 @@ class Setting extends Model
         // For Super Admin, return global settings
         return self::whereNull('branch_id')->pluck('value', 'key')->toArray();
     }
+    /**
+     * Format currency based on settings.
+     */
+    public static function formatCurrency($amount, $settings = [])
+    {
+        $symbol = $settings['currency_symbol'] ?? '$';
+        $position = $settings['currency_symbol_position'] ?? 'prefix';
+        $formattedAmount = number_format((float)$amount, 2);
+
+        if ($position === 'suffix') {
+            return $formattedAmount . ' ' . $symbol;
+        }
+
+        return $symbol . $formattedAmount;
+    }
 }

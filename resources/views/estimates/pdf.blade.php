@@ -270,8 +270,8 @@
                             <div style="color: #4a5568;">{{ $item->description }}</div>
                         </td>
                         <td class="text-right">{{ $item->quantity }}</td>
-                        <td class="text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
-                        <td class="text-right" style="font-weight: bold;">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
+                        <td class="text-right">{{ \App\Models\Setting::formatCurrency($item->unit_price, $settings) }}</td>
+                        <td class="text-right" style="font-weight: bold;">{{ \App\Models\Setting::formatCurrency($item->total, $settings) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -280,12 +280,12 @@
         <table class="totals-table">
             <tr>
                 <td class="label">Subtotal</td>
-                <td class="amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->subtotal, 2) }}</td>
+                <td class="amount">{{ \App\Models\Setting::formatCurrency($estimate->subtotal, $settings) }}</td>
             </tr>
             @if($estimate->tax > 0)
             <tr>
                 <td class="label">Tax ({{ $estimate->tax }}%)</td>
-                <td class="amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format(($estimate->subtotal * $estimate->tax / 100), 2) }}</td>
+                <td class="amount">{{ \App\Models\Setting::formatCurrency(($estimate->subtotal * $estimate->tax / 100), $settings) }}</td>
             </tr>
             @endif
             @if($estimate->discount > 0)
@@ -299,18 +299,17 @@
                     @endif
                 </td>
                 <td class="amount" style="color: #e53e3e;">
-                    -{{ $settings['currency_symbol'] ?? '$' }}
                     @if($estimate->discount_type == 'percent')
-                        {{ number_format(($estimate->subtotal * $estimate->discount / 100), 2) }}
+                        -{{ \App\Models\Setting::formatCurrency(($estimate->subtotal * $estimate->discount / 100), $settings) }}
                     @else
-                        {{ number_format($estimate->discount, 2) }}
+                        -{{ \App\Models\Setting::formatCurrency($estimate->discount, $settings) }}
                     @endif
                 </td>
             </tr>
             @endif
             <tr class="grand-total-row">
                 <td class="grand-total-label">Total Amount</td>
-                <td class="grand-total-amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->total_amount, 2) }}</td>
+                <td class="grand-total-amount">{{ \App\Models\Setting::formatCurrency($estimate->total_amount, $settings) }}</td>
             </tr>
         </table>
 

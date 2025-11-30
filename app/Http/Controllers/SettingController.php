@@ -62,6 +62,7 @@ class SettingController extends Controller
             'invoice_logo_light' => 'nullable|image|max:2048',
             'invoice_logo_dark' => 'nullable|image|max:2048',
             'favicon' => 'nullable|image|mimes:ico,png,jpg,jpeg|max:1024',
+            'currency_symbol_position' => 'nullable|in:prefix,suffix',
             'branch_id' => 'nullable|exists:branches,id',
         ]);
 

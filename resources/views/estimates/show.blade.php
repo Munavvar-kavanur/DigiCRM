@@ -107,8 +107,8 @@
                                             <div class="text-gray-600">{{ $item->description }}</div>
                                         </td>
                                         <td class="py-3 px-4 text-sm text-gray-800 text-center">{{ $item->quantity }}</td>
-                                        <td class="py-3 px-4 text-sm text-gray-800 text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
-                                        <td class="py-3 px-4 text-sm font-medium text-gray-900 text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
+                                        <td class="py-3 px-4 text-sm text-gray-800 text-right">{{ \App\Models\Setting::formatCurrency($item->unit_price, $settings) }}</td>
+                                        <td class="py-3 px-4 text-sm font-medium text-gray-900 text-right">{{ \App\Models\Setting::formatCurrency($item->total, $settings) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -122,12 +122,12 @@
                                 <div class="space-y-3">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600 font-medium">Subtotal</span>
-                                        <span class="text-gray-900 font-bold">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->subtotal, 2) }}</span>
+                                        <span class="text-gray-900 font-bold">{{ \App\Models\Setting::formatCurrency($estimate->subtotal, $settings) }}</span>
                                     </div>
                                     @if($estimate->tax > 0)
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-600 font-medium">Tax ({{ $estimate->tax }}%)</span>
-                                            <span class="text-gray-900 font-bold">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format(($estimate->subtotal * $estimate->tax / 100), 2) }}</span>
+                                            <span class="text-gray-900 font-bold">{{ \App\Models\Setting::formatCurrency(($estimate->subtotal * $estimate->tax / 100), $settings) }}</span>
                                         </div>
                                     @endif
                                     @if($estimate->discount > 0)
@@ -141,18 +141,17 @@
                                                 @endif
                                             </span>
                                             <span class="text-red-600 font-bold">
-                                                -{{ $settings['currency_symbol'] ?? '$' }}
                                                 @if($estimate->discount_type == 'percent')
-                                                    {{ number_format(($estimate->subtotal * $estimate->discount / 100), 2) }}
+                                                    -{{ \App\Models\Setting::formatCurrency(($estimate->subtotal * $estimate->discount / 100), $settings) }}
                                                 @else
-                                                    {{ number_format($estimate->discount, 2) }}
+                                                    -{{ \App\Models\Setting::formatCurrency($estimate->discount, $settings) }}
                                                 @endif
                                             </span>
                                         </div>
                                     @endif
                                     <div class="border-t border-gray-200 my-3 pt-3 flex justify-between items-center">
                                         <span class="text-base font-bold text-gray-900">Total Amount</span>
-                                        <span class="text-xl font-bold text-indigo-600">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($estimate->total_amount, 2) }}</span>
+                                        <span class="text-xl font-bold text-indigo-600">{{ \App\Models\Setting::formatCurrency($estimate->total_amount, $settings) }}</span>
                                     </div>
                                 </div>
                             </div>

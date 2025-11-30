@@ -270,8 +270,8 @@
                             <div style="color: #4a5568;">{{ $item->description }}</div>
                         </td>
                         <td class="text-right">{{ $item->quantity }}</td>
-                        <td class="text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
-                        <td class="text-right" style="font-weight: bold;">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
+                        <td class="text-right">{{ \App\Models\Setting::formatCurrency($item->unit_price, $settings) }}</td>
+                        <td class="text-right" style="font-weight: bold;">{{ \App\Models\Setting::formatCurrency($item->total, $settings) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -280,12 +280,12 @@
         <table class="totals-table">
             <tr>
                 <td class="label">Subtotal</td>
-                <td class="amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->subtotal, 2) }}</td>
+                <td class="amount">{{ \App\Models\Setting::formatCurrency($invoice->subtotal, $settings) }}</td>
             </tr>
             @if($invoice->tax > 0)
             <tr>
                 <td class="label">Tax ({{ $invoice->tax }}%)</td>
-                <td class="amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format(($invoice->subtotal * $invoice->tax / 100), 2) }}</td>
+                <td class="amount">{{ \App\Models\Setting::formatCurrency(($invoice->subtotal * $invoice->tax / 100), $settings) }}</td>
             </tr>
             @endif
             @if($invoice->discount > 0)
@@ -298,20 +298,20 @@
                 </td>
                 <td class="amount" style="color: #e53e3e;">
                     @if($invoice->discount_type === 'percent')
-                        -{{ $settings['currency_symbol'] ?? '$' }}{{ number_format(($invoice->subtotal * $invoice->discount / 100), 2) }}
+                        -{{ \App\Models\Setting::formatCurrency(($invoice->subtotal * $invoice->discount / 100), $settings) }}
                     @else
-                        -{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->discount, 2) }}
+                        -{{ \App\Models\Setting::formatCurrency($invoice->discount, $settings) }}
                     @endif
                 </td>
             </tr>
             @endif
             <tr class="grand-total-row">
                 <td class="grand-total-label">Grand Total</td>
-                <td class="grand-total-amount">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->grand_total, 2) }}</td>
+                <td class="grand-total-amount">{{ \App\Models\Setting::formatCurrency($invoice->grand_total, $settings) }}</td>
             </tr>
             <tr>
                 <td class="label" style="padding-top: 10px;">Balance Due</td>
-                <td class="amount" style="padding-top: 10px; color: #e53e3e;">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->balance_due, 2) }}</td>
+                <td class="amount" style="padding-top: 10px; color: #e53e3e;">{{ \App\Models\Setting::formatCurrency($invoice->balance_due, $settings) }}</td>
             </tr>
         </table>
 

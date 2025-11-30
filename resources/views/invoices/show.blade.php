@@ -120,8 +120,8 @@
                                             <div class="text-gray-600">{{ $item->description }}</div>
                                         </td>
                                         <td class="py-3 px-4 text-sm text-gray-600 text-right">{{ $item->quantity }}</td>
-                                        <td class="py-3 px-4 text-sm text-gray-600 text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->unit_price, 2) }}</td>
-                                        <td class="py-3 px-4 text-sm font-medium text-gray-900 text-right">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($item->total, 2) }}</td>
+                                        <td class="py-3 px-4 text-sm text-gray-600 text-right">{{ \App\Models\Setting::formatCurrency($item->unit_price, $settings) }}</td>
+                                        <td class="py-3 px-4 text-sm font-medium text-gray-900 text-right">{{ \App\Models\Setting::formatCurrency($item->total, $settings) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -135,12 +135,12 @@
                                 <div class="space-y-3">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600 font-medium">Subtotal</span>
-                                        <span class="text-gray-900 font-bold">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->subtotal, 2) }}</span>
+                                        <span class="text-gray-900 font-bold">{{ \App\Models\Setting::formatCurrency($invoice->subtotal, $settings) }}</span>
                                     </div>
                                     @if($invoice->tax > 0)
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-600 font-medium">Tax</span>
-                                            <span class="text-gray-900 font-bold">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->tax, 2) }}</span>
+                                            <span class="text-gray-900 font-bold">{{ \App\Models\Setting::formatCurrency($invoice->tax, $settings) }}</span>
                                         </div>
                                     @endif
                                     @if($invoice->discount > 0)
@@ -153,20 +153,20 @@
                                             </span>
                                             <span class="text-red-600 font-bold">
                                                 @if($invoice->discount_type === 'percent')
-                                                    -{{ $settings['currency_symbol'] ?? '$' }}{{ number_format(($invoice->subtotal * $invoice->discount / 100), 2) }}
+                                                    -{{ \App\Models\Setting::formatCurrency(($invoice->subtotal * $invoice->discount / 100), $settings) }}
                                                 @else
-                                                    -{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->discount, 2) }}
+                                                    -{{ \App\Models\Setting::formatCurrency($invoice->discount, $settings) }}
                                                 @endif
                                             </span>
                                         </div>
                                     @endif
                                     <div class="border-t border-gray-200 my-3 pt-3 flex justify-between items-center">
                                         <span class="text-base font-bold text-gray-900">Grand Total</span>
-                                        <span class="text-xl font-bold text-indigo-600">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->grand_total, 2) }}</span>
+                                        <span class="text-xl font-bold text-indigo-600">{{ \App\Models\Setting::formatCurrency($invoice->grand_total, $settings) }}</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-1">
                                         <span class="text-sm font-medium text-gray-600">Balance Due</span>
-                                        <span class="text-sm font-bold text-gray-900">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($invoice->balance_due, 2) }}</span>
+                                        <span class="text-sm font-bold text-gray-900">{{ \App\Models\Setting::formatCurrency($invoice->balance_due, $settings) }}</span>
                                     </div>
                                 </div>
                             </div>
