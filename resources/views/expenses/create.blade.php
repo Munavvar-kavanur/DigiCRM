@@ -266,14 +266,14 @@
                                 <!-- Upload Receipt -->
                                 <div class="group md:col-span-2">
                                     <x-input-label for="receipt" :value="__('Upload Receipt')" class="mb-2 text-gray-600 dark:text-gray-400" />
-                                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors bg-gray-50 dark:bg-gray-900/50">
+                                    <div id="drop-zone" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors bg-gray-50 dark:bg-gray-900/50 cursor-pointer">
                                         <div class="space-y-1 text-center">
                                             <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                                                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                             </svg>
                                             <div class="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
                                                 <label for="receipt" class="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 px-2">
-                                                    <span>Upload a file</span>
+                                                    <span id="file-name">Upload a file</span>
                                                     <input id="receipt" name="receipt" type="file" class="sr-only" accept=".png, .jpg, .jpeg, .pdf">
                                                 </label>
                                                 <p class="pl-1">or drag and drop</p>
@@ -333,4 +333,63 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('receipt');
+            const fileNameDisplay = document.getElementById('file-name');
+
+            // Handle file selection via click
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    fileNameDisplay.textContent = this.files[0].name;
+                }
+            });
+
+            // Handle Drag and Drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropZone.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+            }
+
+            function unhighlight(e) {
+                dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files && files.length > 0) {
+                    fileInput.files = files;
+                    fileNameDisplay.textContent = files[0].name;
+                }
+            }
+            
+            // Allow clicking the drop zone to trigger the file input
+            dropZone.addEventListener('click', function(e) {
+                if (e.target !== fileInput) {
+                    fileInput.click();
+                }
+            });
+        });
+    </script>
 </x-app-layout>
