@@ -458,7 +458,7 @@
                                             <x-input-label for="currency_code" :value="__('Currency Code')" />
                                             <x-text-input id="currency_code" name="currency_code" type="text" class="mt-2 block w-full" :value="old('currency_code', $settings['currency_code'] ?? 'USD')" placeholder="USD" />
                                         </div>
-                                        <div>
+                                        <div class="mb-6">
                                             <x-input-label for="currency_symbol_position" :value="__('Currency Symbol Position')" />
                                             <select id="currency_symbol_position" name="currency_symbol_position" class="mt-2 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-cyan-500 dark:focus:border-cyan-600 focus:ring-cyan-500 dark:focus:ring-cyan-600 rounded-xl shadow-sm">
                                                 <option value="prefix" {{ ($settings['currency_symbol_position'] ?? 'prefix') == 'prefix' ? 'selected' : '' }}>Prefix (e.g. $100)</option>
@@ -489,7 +489,7 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-4" x-show="['details', 'branding', 'localization'].includes(activeTab)">
+                            <div class="flex items-center gap-4 mt-6" x-show="['details', 'branding', 'localization'].includes(activeTab)">
                                 <x-primary-button>{{ __('Save Settings') }}</x-primary-button>
                                 @if (session('status') === 'settings-updated')
                                     <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)" class="text-sm text-green-600 dark:text-green-400">{{ __('Saved.') }}</p>
