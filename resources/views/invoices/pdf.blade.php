@@ -95,7 +95,7 @@
         .items-table th {
             background-color: #f7fafc;
             color: #4a5568;
-            font-weight: 600;
+            font-weight: bold;
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 0.5px;
@@ -125,14 +125,15 @@
             border-bottom: 1px solid #edf2f7;
         }
         .totals-table .label {
-            font-weight: 600;
+            font-weight: bold;
             color: #718096;
             font-size: 12px;
         }
         .totals-table .amount {
             text-align: right;
-            font-weight: 600;
+            font-weight: bold;
             color: #2d3748;
+            font-family: 'DejaVu Sans', sans-serif;
         }
         .grand-total-row td {
             border-top: 2px solid #1a202c;
