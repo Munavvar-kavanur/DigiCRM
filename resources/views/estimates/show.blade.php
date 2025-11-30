@@ -28,7 +28,9 @@
                 <!-- Header Bar -->
                 <div class="bg-gray-800 text-white px-8 py-6 flex justify-between items-center">
                     <div class="flex items-center">
-                        @if(isset($settings['invoice_logo_light']))
+                        @if(isset($settings['invoice_logo_dark']))
+                            <img src="{{ asset('storage/' . $settings['invoice_logo_dark']) }}" alt="Logo" class="h-12 mr-4">
+                        @elseif(isset($settings['invoice_logo_light']))
                             <img src="{{ asset('storage/' . $settings['invoice_logo_light']) }}" alt="Logo" class="h-12 mr-4">
                         @else
                             <h2 class="text-2xl font-bold tracking-wider">{{ $settings['company_name'] ?? 'COMPANY' }}</h2>

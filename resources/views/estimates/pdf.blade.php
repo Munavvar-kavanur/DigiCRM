@@ -188,7 +188,9 @@
             <tr>
                 <td class="logo-container">
                     @if(isset($settings['invoice_logo_dark']))
-                        <img src="{{ public_path('storage/' . ($settings['invoice_logo_light'] ?? $settings['invoice_logo_dark'])) }}" alt="Logo">
+                        <img src="{{ public_path('storage/' . $settings['invoice_logo_dark']) }}" alt="Logo">
+                    @elseif(isset($settings['invoice_logo_light']))
+                        <img src="{{ public_path('storage/' . $settings['invoice_logo_light']) }}" alt="Logo">
                     @else
                         <h2 style="margin:0; font-size: 24px;">{{ $settings['company_name'] ?? 'COMPANY' }}</h2>
                     @endif
