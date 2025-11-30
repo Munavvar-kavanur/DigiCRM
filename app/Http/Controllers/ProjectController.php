@@ -91,8 +91,13 @@ class ProjectController extends Controller
         $clients = collect();
         if (!auth()->user()->isSuperAdmin()) {
             $clients = Client::where('status', 'active')->where('branch_id', auth()->user()->branch_id)->get();
-        } elseif (request()->old('branch_id')) {
-             $clients = Client::where('status', 'active')->where('branch_id', request()->old('branch_id'))->get();
+        } else {
+            // For super admin, load all active clients or clients from old branch_id if validation failed
+            if (request()->old('branch_id')) {
+                $clients = Client::where('status', 'active')->where('branch_id', request()->old('branch_id'))->get();
+            } else {
+                $clients = Client::where('status', 'active')->orderBy('name')->get();
+            }
         }
         
         $branches = \App\Models\Branch::orderBy('name')->get();
