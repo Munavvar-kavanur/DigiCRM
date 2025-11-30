@@ -12,23 +12,35 @@
                         // Get Global Settings explicitly for fallback
                         $globalSettings = \App\Models\Setting::whereNull('branch_id')->pluck('value', 'key')->toArray();
                         
-                        // Merge settings, prioritizing context settings
-                        $settings = array_merge($globalSettings, $contextSettings);
+                        // Determine if we are in a branch context
+                        $isBranchContext = auth()->check() && auth()->user()->branch_id;
                         
-                        // Define logos with safe access
-                        $lightLogo = $settings['crm_logo_light'] ?? null;
-                        $darkLogo = $settings['crm_logo_dark'] ?? null;
-                        $favicon = $settings['favicon'] ?? null;
+                        // Helper function to resolve settings with priority:
+                        // 1. Branch Specific Setting
+                        // 2. Branch Fallback Setting (e.g., favicon)
+                        // 3. Global Specific Setting
+                        // 4. Global Fallback Setting
+                        $resolveSetting = function($key, $fallbackKey = null) use ($contextSettings, $globalSettings, $isBranchContext) {
+                            if ($isBranchContext) {
+                                if (!empty($contextSettings[$key])) return $contextSettings[$key];
+                                if ($fallbackKey && !empty($contextSettings[$fallbackKey])) return $contextSettings[$fallbackKey];
+                            }
+                            
+                            if (!empty($globalSettings[$key])) return $globalSettings[$key];
+                            if ($fallbackKey && !empty($globalSettings[$fallbackKey])) return $globalSettings[$fallbackKey];
+                            
+                            return null;
+                        };
                         
-                        // Fallbacks if one mode is missing
-                        $lightLogo = $lightLogo ?: $darkLogo;
-                        $darkLogo = $darkLogo ?: $lightLogo;
+                        // Resolve Logos
+                        $lightLogo = $resolveSetting('crm_logo_light', 'crm_logo_dark');
+                        $darkLogo = $resolveSetting('crm_logo_dark', 'crm_logo_light');
                         
-                        // Use favicon as fallback for collapsed logo
-                        $collapsedLightLogo = $settings['crm_logo_collapsed_light'] ?? $favicon;
-                        $collapsedDarkLogo = $settings['crm_logo_collapsed_dark'] ?? $favicon;
+                        // Resolve Collapsed Logos (prioritizing favicon as fallback)
+                        $collapsedLightLogo = $resolveSetting('crm_logo_collapsed_light', 'favicon');
+                        $collapsedDarkLogo = $resolveSetting('crm_logo_collapsed_dark', 'favicon');
                         
-                        // If still no collapsed logo, fallback to main logo (last resort)
+                        // Final safety fallback to main logos
                         $collapsedLightLogo = $collapsedLightLogo ?: $lightLogo;
                         $collapsedDarkLogo = $collapsedDarkLogo ?: $darkLogo;
                     @endphp
