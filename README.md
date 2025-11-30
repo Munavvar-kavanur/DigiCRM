@@ -101,6 +101,34 @@ php artisan serve
 
 The application should now be accessible at `http://localhost:8000`.
 
+## Production Deployment Guide
+
+For a perfect production setup, ensure you run the following commands after deploying your code:
+
+### 1. Link Storage
+Create the symbolic link for the storage directory to make public files accessible:
+```bash
+php artisan storage:link
+```
+
+### 2. Set Permissions
+Ensure the storage directory is writable by the web server:
+```bash
+sudo chmod -R ugo+rw storage
+```
+
+### 3. Ensure Log File Exists
+Create the log file if it doesn't exist (adjust the path `/home/domain.com/laravel-app` to your actual project root):
+```bash
+touch /home/domain.com/laravel-app/storage/logs/laravel.log
+```
+
+### 4. Re-apply Permissions
+Apply permissions again to ensure the new log file and any created directories are writable:
+```bash
+sudo chmod -R ugo+rw storage
+```
+
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
