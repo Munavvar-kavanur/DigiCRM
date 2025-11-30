@@ -28,15 +28,14 @@
                     @endphp
 
                     <!-- Light Mode Logo -->
-                    <div class="dark:hidden relative flex items-center justify-center h-9">
+                    <div class="dark:hidden flex items-center justify-center h-9">
                         <!-- Full Logo -->
                         <div x-show="!sidebarCollapsed" 
                              x-transition:enter="transition ease-out duration-300"
                              x-transition:enter-start="opacity-0 transform scale-90"
-                             x-transition:enter-end="opacity-100 transform scale-100"
-                             class="absolute left-0">
+                             x-transition:enter-end="opacity-100 transform scale-100">
                             <img src="{{ $lightLogo ? asset('storage/' . $lightLogo) : '' }}" 
-                                 class="h-9 w-auto" 
+                                 class="h-9 w-auto max-w-[10rem] object-contain" 
                                  alt="Logo"
                                  @if(!$lightLogo) style="display: none;" @endif>
                             @if(!$lightLogo)
@@ -48,8 +47,7 @@
                         <div x-show="sidebarCollapsed"
                              x-transition:enter="transition ease-out duration-300"
                              x-transition:enter-start="opacity-0 transform scale-90"
-                             x-transition:enter-end="opacity-100 transform scale-100"
-                             class="absolute">
+                             x-transition:enter-end="opacity-100 transform scale-100">
                             <img src="{{ $collapsedLightLogo ? asset('storage/' . $collapsedLightLogo) : '' }}" 
                                  class="h-8 w-8 object-contain" 
                                  alt="Logo"
@@ -61,15 +59,14 @@
                     </div>
 
                     <!-- Dark Mode Logo -->
-                    <div class="hidden dark:flex relative items-center justify-center h-9">
+                    <div class="hidden dark:flex items-center justify-center h-9">
                         <!-- Full Logo -->
                         <div x-show="!sidebarCollapsed"
                              x-transition:enter="transition ease-out duration-300"
                              x-transition:enter-start="opacity-0 transform scale-90"
-                             x-transition:enter-end="opacity-100 transform scale-100"
-                             class="absolute left-0">
+                             x-transition:enter-end="opacity-100 transform scale-100">
                             <img src="{{ $darkLogo ? asset('storage/' . $darkLogo) : '' }}" 
-                                 class="h-9 w-auto" 
+                                 class="h-9 w-auto max-w-[10rem] object-contain" 
                                  alt="Logo"
                                  @if(!$darkLogo) style="display: none;" @endif>
                             @if(!$darkLogo)
@@ -81,8 +78,7 @@
                         <div x-show="sidebarCollapsed"
                              x-transition:enter="transition ease-out duration-300"
                              x-transition:enter-start="opacity-0 transform scale-90"
-                             x-transition:enter-end="opacity-100 transform scale-100"
-                             class="absolute">
+                             x-transition:enter-end="opacity-100 transform scale-100">
                             <img src="{{ $collapsedDarkLogo ? asset('storage/' . $collapsedDarkLogo) : '' }}" 
                                  class="h-8 w-8 object-contain" 
                                  alt="Logo"
