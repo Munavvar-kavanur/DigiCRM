@@ -9,7 +9,7 @@ class BranchDataController extends Controller
 {
     public function getClients(Branch $branch)
     {
-        return response()->json($branch->clients()->orderBy('name')->get(['id', 'name']));
+        return response()->json($branch->clients()->where('status', 'active')->orderBy('name')->get(['id', 'name']));
     }
 
     public function getProjects(Branch $branch)
