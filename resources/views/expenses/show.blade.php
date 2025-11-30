@@ -160,48 +160,52 @@
                         <!-- Receipt Preview -->
                         <div class="lg:col-span-1">
                             <div class="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-6 border border-gray-100 dark:border-gray-700 h-full">
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Receipt</h3>
-                                @if($expense->receipt_path)
-                                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-800">
-                                        @php
-                                            $extension = pathinfo($expense->receipt_path, PATHINFO_EXTENSION);
-                                        @endphp
-                                        
-                                        @if(in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif']))
-                                            <a href="{{ asset('storage/' . $expense->receipt_path) }}" target="_blank">
-                                                <img src="{{ asset('storage/' . $expense->receipt_path) }}" alt="Receipt" class="w-full h-auto rounded hover:opacity-90 transition">
-                                            </a>
-                                        @elseif(strtolower($extension) === 'pdf')
-                                            <div class="flex flex-col items-center justify-center py-8">
-                                                <svg class="w-16 h-16 text-red-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                                </svg>
-                                                <span class="text-sm font-medium text-gray-900 dark:text-white mb-2">PDF Document</span>
-                                                <a href="{{ asset('storage/' . $expense->receipt_path) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 text-sm font-semibold hover:underline">
-                                                    View PDF
-                                                </a>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Receipts</h3>
+                                @if(count($expense->receipt_paths) > 0)
+                                    <div class="space-y-4">
+                                        @foreach($expense->receipt_paths as $path)
+                                            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-800">
+                                                @php
+                                                    $extension = pathinfo($path, PATHINFO_EXTENSION);
+                                                @endphp
+                                                
+                                                @if(in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif']))
+                                                    <a href="{{ asset('storage/' . $path) }}" target="_blank">
+                                                        <img src="{{ asset('storage/' . $path) }}" alt="Receipt" class="w-full h-auto rounded hover:opacity-90 transition">
+                                                    </a>
+                                                @elseif(strtolower($extension) === 'pdf')
+                                                    <div class="flex flex-col items-center justify-center py-8">
+                                                        <svg class="w-16 h-16 text-red-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                        </svg>
+                                                        <span class="text-sm font-medium text-gray-900 dark:text-white mb-2">PDF Document</span>
+                                                        <a href="{{ asset('storage/' . $path) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 text-sm font-semibold hover:underline">
+                                                            View PDF
+                                                        </a>
+                                                    </div>
+                                                @else
+                                                    <div class="flex flex-col items-center justify-center py-8">
+                                                        <svg class="w-16 h-16 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                        <a href="{{ asset('storage/' . $path) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 text-sm font-semibold hover:underline">
+                                                            Download File
+                                                        </a>
+                                                    </div>
+                                                @endif
+                                                <div class="mt-2 text-center">
+                                                    <a href="{{ asset('storage/' . $path) }}" download class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 flex items-center justify-center">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                                        Download
+                                                    </a>
+                                                </div>
                                             </div>
-                                        @else
-                                            <div class="flex flex-col items-center justify-center py-8">
-                                                <svg class="w-16 h-16 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                <a href="{{ asset('storage/' . $expense->receipt_path) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 text-sm font-semibold hover:underline">
-                                                    Download File
-                                                </a>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="mt-4 text-center">
-                                        <a href="{{ asset('storage/' . $expense->receipt_path) }}" download class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 flex items-center justify-center">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                            Download Original
-                                        </a>
+                                        @endforeach
                                     </div>
                                 @else
                                     <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 flex flex-col items-center justify-center text-gray-400">
                                         <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        <span class="text-sm">No receipt attached</span>
+                                        <span class="text-sm">No receipts attached</span>
                                     </div>
                                 @endif
                             </div>

@@ -171,7 +171,8 @@ class ExpenseController extends Controller
             'end_date' => 'nullable|date|after:date',
             'merchant' => 'nullable|string|max:255',
             'reference' => 'nullable|string|max:255',
-            'receipt' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'receipt' => 'nullable|array',
+            'receipt.*' => 'file|mimes:jpeg,png,jpg,pdf|max:2048',
             'status' => 'required|in:pending,approved,rejected',
             'branch_id' => 'nullable|exists:branches,id',
             'paid_by_id' => 'nullable|exists:expense_payers,id',
@@ -185,7 +186,11 @@ class ExpenseController extends Controller
         }
 
         if ($request->hasFile('receipt')) {
-            $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
+            $paths = [];
+            foreach ($request->file('receipt') as $file) {
+                $paths[] = $file->store('receipts', 'public');
+            }
+            $validated['receipt_path'] = $paths;
         }
 
         Expense::create($validated);
@@ -222,7 +227,8 @@ class ExpenseController extends Controller
             'end_date' => 'nullable|date|after:date',
             'merchant' => 'nullable|string|max:255',
             'reference' => 'nullable|string|max:255',
-            'receipt' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'receipt' => 'nullable|array',
+            'receipt.*' => 'file|mimes:jpeg,png,jpg,pdf|max:2048',
             'status' => 'required|in:pending,approved,rejected',
             'branch_id' => 'nullable|exists:branches,id',
             'paid_by_id' => 'nullable|exists:expense_payers,id',
@@ -235,11 +241,18 @@ class ExpenseController extends Controller
         }
 
         if ($request->hasFile('receipt')) {
-            // Delete old receipt if exists
-            if ($expense->receipt_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($expense->receipt_path)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($expense->receipt_path);
+            // Delete old receipts if exist
+            foreach ($expense->receipt_paths as $path) {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+                }
             }
-            $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
+            
+            $paths = [];
+            foreach ($request->file('receipt') as $file) {
+                $paths[] = $file->store('receipts', 'public');
+            }
+            $validated['receipt_path'] = $paths;
         }
 
         $expense->update($validated);
@@ -249,8 +262,10 @@ class ExpenseController extends Controller
 
     public function destroy(Expense $expense)
     {
-        if ($expense->receipt_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($expense->receipt_path)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($expense->receipt_path);
+        foreach ($expense->receipt_paths as $path) {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+            }
         }
         $expense->delete();
         return redirect()->route('expenses.index')->with('success', 'Expense deleted successfully.');

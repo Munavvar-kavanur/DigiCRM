@@ -273,8 +273,8 @@
                                             </svg>
                                             <div class="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
                                                 <label for="receipt" class="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 px-2">
-                                                    <span id="file-name">Upload a file</span>
-                                                    <input id="receipt" name="receipt" type="file" class="sr-only" accept=".png, .jpg, .jpeg, .pdf">
+                                                    <span id="file-name">Upload files</span>
+                                                    <input id="receipt" name="receipt[]" type="file" class="sr-only" accept=".png, .jpg, .jpeg, .pdf" multiple>
                                                 </label>
                                                 <p class="pl-1">or drag and drop</p>
                                             </div>
@@ -341,8 +341,12 @@
 
             // Handle file selection via click
             fileInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    fileNameDisplay.textContent = this.files[0].name;
+                if (this.files && this.files.length > 0) {
+                    if (this.files.length === 1) {
+                        fileNameDisplay.textContent = this.files[0].name;
+                    } else {
+                        fileNameDisplay.textContent = this.files.length + ' files selected';
+                    }
                 }
             });
 
@@ -380,7 +384,11 @@
 
                 if (files && files.length > 0) {
                     fileInput.files = files;
-                    fileNameDisplay.textContent = files[0].name;
+                    if (files.length === 1) {
+                        fileNameDisplay.textContent = files[0].name;
+                    } else {
+                        fileNameDisplay.textContent = files.length + ' files selected';
+                    }
                 }
             }
             

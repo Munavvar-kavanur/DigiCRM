@@ -38,7 +38,29 @@ class Expense extends Model
 
     public function getReceiptUrlAttribute()
     {
-        return $this->receipt_path ? asset('storage/' . $this->receipt_path) : null;
+        // Return the first receipt URL if available
+        $paths = $this->receipt_paths;
+        return !empty($paths) ? asset('storage/' . $paths[0]) : null;
+    }
+
+    public function getReceiptPathsAttribute()
+    {
+        $value = $this->attributes['receipt_path'] ?? null;
+        if (!$value) return [];
+        
+        // Try to decode as JSON
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+        
+        // If not JSON, treat as single path
+        return [$value];
+    }
+
+    public function setReceiptPathAttribute($value)
+    {
+        $this->attributes['receipt_path'] = is_array($value) ? json_encode($value) : $value;
     }
 
     public function scopePending($query)
