@@ -129,6 +129,56 @@ Apply permissions again to ensure the new log file and any created directories a
 sudo chmod -R ugo+rw storage
 ```
 
+## Useful Artisan Commands
+
+Here are some common commands you might need during development and maintenance:
+
+### Clear Caches
+Clear various caches to ensure changes take effect:
+
+```bash
+# Clear compiled view files (useful when blade changes aren't reflecting)
+php artisan view:clear
+
+# Clear application cache
+php artisan cache:clear
+
+# Clear configuration cache
+php artisan config:clear
+
+# Clear route cache
+php artisan route:clear
+
+# Clear all caches at once (optimize:clear)
+php artisan optimize:clear
+```
+
+### Database
+Manage your database state:
+
+```bash
+# Run migrations
+php artisan migrate
+
+# Run migrations and seed database
+php artisan migrate --seed
+
+# Rollback the last migration operation
+php artisan migrate:rollback
+
+# Seed the database
+php artisan db:seed
+```
+
+### Maintenance
+```bash
+# Put the application into maintenance mode
+php artisan down
+
+# Bring the application out of maintenance mode
+php artisan up
+```
+
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
