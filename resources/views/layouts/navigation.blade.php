@@ -18,13 +18,19 @@
                         // Define logos with safe access
                         $lightLogo = $settings['crm_logo_light'] ?? null;
                         $darkLogo = $settings['crm_logo_dark'] ?? null;
+                        $favicon = $settings['favicon'] ?? null;
                         
                         // Fallbacks if one mode is missing
                         $lightLogo = $lightLogo ?: $darkLogo;
                         $darkLogo = $darkLogo ?: $lightLogo;
                         
-                        $collapsedLightLogo = $settings['crm_logo_collapsed_light'] ?? $lightLogo;
-                        $collapsedDarkLogo = $settings['crm_logo_collapsed_dark'] ?? $darkLogo;
+                        // Use favicon as fallback for collapsed logo
+                        $collapsedLightLogo = $settings['crm_logo_collapsed_light'] ?? $favicon;
+                        $collapsedDarkLogo = $settings['crm_logo_collapsed_dark'] ?? $favicon;
+                        
+                        // If still no collapsed logo, fallback to main logo (last resort)
+                        $collapsedLightLogo = $collapsedLightLogo ?: $lightLogo;
+                        $collapsedDarkLogo = $collapsedDarkLogo ?: $darkLogo;
                     @endphp
 
                     <!-- Light Mode Logo -->
