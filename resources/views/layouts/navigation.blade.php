@@ -6,8 +6,14 @@
             <div class="shrink-0 flex items-center transform transition-transform duration-300 hover:scale-105">
                 <a href="{{ route('dashboard') }}" wire:navigate>
                     @php
-                        // Get settings directly or fallback to empty array
-                        $settings = $globalSettings ?? [];
+                        // Get settings for the current context (Branch or Global)
+                        $contextSettings = \App\Models\Setting::getAll();
+                        
+                        // Get Global Settings explicitly for fallback
+                        $globalSettings = \App\Models\Setting::whereNull('branch_id')->pluck('value', 'key')->toArray();
+                        
+                        // Merge settings, prioritizing context settings
+                        $settings = array_merge($globalSettings, $contextSettings);
                         
                         // Define logos with safe access
                         $lightLogo = $settings['crm_logo_light'] ?? null;

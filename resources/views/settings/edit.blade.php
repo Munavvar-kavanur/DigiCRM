@@ -116,7 +116,7 @@
                     <div x-show="expanded" x-collapse x-cloak class="border-t border-gray-100 dark:border-gray-700">
                         <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-8">
                             @csrf
-                            @method('PUT')
+                            @method('PATCH')
                             <input type="hidden" name="branch_id" value="">
 
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
