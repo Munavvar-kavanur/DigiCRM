@@ -87,6 +87,16 @@
                             <svg class="w-5 h-5 mr-3" :class="{ 'text-cyan-600 dark:text-cyan-400': activeTab === 'payroll_types', 'text-gray-400 group-hover:text-gray-500': activeTab !== 'payroll_types' }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             Payroll Types
                         </button>
+
+                        @if(auth()->user()->isSuperAdmin())
+                        <!-- Backup & Restore -->
+                        <button @click="updateTab('backup')" 
+                            :class="{ 'bg-white dark:bg-gray-800 shadow-md text-cyan-600 dark:text-cyan-400': activeTab === 'backup', 'hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-400': activeTab !== 'backup' }" 
+                            class="group flex items-center px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 w-full text-left">
+                            <svg class="w-5 h-5 mr-3" :class="{ 'text-cyan-600 dark:text-cyan-400': activeTab === 'backup', 'text-gray-400 group-hover:text-gray-500': activeTab !== 'backup' }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Backup & Restore
+                        </button>
+                        @endif
                     </nav>
                 </div>
             </div>
@@ -756,6 +766,69 @@
                                 </div>
                             </div>
                         </div>
+
+                        </div>
+
+                        @if(auth()->user()->isSuperAdmin())
+                        <!-- Backup & Restore Tab -->
+                        <div x-show="activeTab === 'backup'" class="space-y-8" x-cloak>
+                            <div class="border-b border-gray-100 dark:border-gray-700 pb-5 mb-6">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Backup & Restore</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Secure your data by creating backups or restoring from a previous state.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <!-- Backup Section -->
+                                <div class="bg-gray-50 dark:bg-gray-700/30 p-8 rounded-2xl border border-gray-100 dark:border-gray-700">
+                                    <div class="flex items-center mb-6">
+                                        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl mr-4 text-blue-600 dark:text-blue-400">
+                                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">Download Backup</h4>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Export your entire database as a SQL file.</p>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                                            This will generate a complete backup of your database, including all clients, projects, invoices, and settings.
+                                            Please store this file in a secure location.
+                                        </p>
+                                        <a href="{{ route('settings.backup') }}" class="inline-flex items-center justify-center w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm hover:shadow-md">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            Download Database Backup
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Restore Section -->
+                                <div class="bg-gray-50 dark:bg-gray-700/30 p-8 rounded-2xl border border-gray-100 dark:border-gray-700">
+                                    <div class="flex items-center mb-6">
+                                        <div class="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl mr-4 text-red-600 dark:text-red-400">
+                                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">Restore Database</h4>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Restore your system from a backup file.</p>
+                                        </div>
+                                    </div>
+                                    <form action="{{ route('settings.restore') }}" method="POST" enctype="multipart/form-data" class="space-y-4" onsubmit="return confirm('WARNING: This will overwrite all current data! Are you sure you want to proceed?');">
+                                        @csrf
+                                        <div class="space-y-2">
+                                            <p class="text-sm text-red-600 dark:text-red-400 font-medium">
+                                                Warning: This action is irreversible. All current data will be replaced.
+                                            </p>
+                                            <input type="file" name="backup_file" accept=".sql" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 dark:file:bg-red-900/30 dark:file:text-red-300">
+                                        </div>
+                                        <button type="submit" class="inline-flex items-center justify-center w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium rounded-xl transition-colors">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                            Restore from Backup
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
 
                     </div>
                     </div>

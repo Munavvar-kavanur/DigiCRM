@@ -51,6 +51,12 @@ Route::middleware('auth')->group(function () {
     // User Management (Settings)
     Route::middleware(['role:super_admin'])->resource('settings/users', \App\Http\Controllers\UserController::class, ['as' => 'settings']);
 
+    // Backup & Restore (Super Admin only)
+    Route::middleware(['role:super_admin'])->group(function () {
+        Route::get('/settings/backup', [\App\Http\Controllers\BackupController::class, 'download'])->name('settings.backup');
+        Route::post('/settings/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('settings.restore');
+    });
+
     Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
     Route::post('expense-categories', [\App\Http\Controllers\ExpenseCategoryController::class, 'store'])->name('expense-categories.store');
     Route::put('expense-categories/{expenseCategory}', [\App\Http\Controllers\ExpenseCategoryController::class, 'update'])->name('expense-categories.update');
