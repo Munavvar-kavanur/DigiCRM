@@ -46,6 +46,8 @@ class Invoice extends Model
         'is_recurring' => 'boolean',
     ];
 
+    protected $appends = ['currency_symbol'];
+
     public function client()
     {
         return $this->belongsTo(Client::class);
@@ -64,5 +66,19 @@ class Invoice extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function getCurrencySymbolAttribute()
+    {
+        $symbols = [
+            'INR' => '₹',
+            'AED' => 'د.إ',
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£',
+        ];
+        
+        $currency = $this->currency ?? 'INR';
+        return $symbols[$currency] ?? $currency;
     }
 }
