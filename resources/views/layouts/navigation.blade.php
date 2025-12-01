@@ -31,6 +31,12 @@
                             
                             return null;
                         };
+
+                        // Helper to check if file exists in public disk
+                        $fileExists = function($path) {
+                            if (empty($path)) return false;
+                            return \Illuminate\Support\Facades\Storage::disk('public')->exists($path);
+                        };
                         
                         // Resolve Logos
                         $lightLogo = $resolveSetting('crm_logo_light', 'crm_logo_dark');
@@ -43,6 +49,12 @@
                         // Final safety fallback to main logos
                         $collapsedLightLogo = $collapsedLightLogo ?: $lightLogo;
                         $collapsedDarkLogo = $collapsedDarkLogo ?: $darkLogo;
+
+                        // Verify files exist, otherwise reset to null to show default component
+                        if ($lightLogo && !$fileExists($lightLogo)) $lightLogo = null;
+                        if ($darkLogo && !$fileExists($darkLogo)) $darkLogo = null;
+                        if ($collapsedLightLogo && !$fileExists($collapsedLightLogo)) $collapsedLightLogo = null;
+                        if ($collapsedDarkLogo && !$fileExists($collapsedDarkLogo)) $collapsedDarkLogo = null;
                     @endphp
 
                     <!-- Light Mode Logo -->
