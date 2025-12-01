@@ -784,17 +784,17 @@
                                         </div>
                                         <div>
                                             <h4 class="text-lg font-bold text-gray-900 dark:text-white">Download Backup</h4>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">Export your entire database as a SQL file.</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Export your entire system (Database + Files) as a ZIP file.</p>
                                         </div>
                                     </div>
                                     <div class="space-y-4">
                                         <p class="text-sm text-gray-600 dark:text-gray-300">
-                                            This will generate a complete backup of your database, including all clients, projects, invoices, and settings.
+                                            This will generate a complete backup of your database and storage files (logos, uploads, etc.).
                                             Please store this file in a secure location.
                                         </p>
                                         <a href="{{ route('settings.backup') }}" class="inline-flex items-center justify-center w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm hover:shadow-md">
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                            Download Database Backup
+                                            Download System Backup
                                         </a>
                                     </div>
                                 </div>
@@ -806,8 +806,8 @@
                                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                         </div>
                                         <div>
-                                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">Restore Database</h4>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">Restore your system from a backup file.</p>
+                                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">Restore System</h4>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Restore your system from a backup file (ZIP or SQL).</p>
                                         </div>
                                     </div>
                                     <form action="{{ route('settings.restore') }}" method="POST" enctype="multipart/form-data" class="space-y-4" onsubmit="return confirm('WARNING: This will overwrite all current data! Are you sure you want to proceed?');">
@@ -816,7 +816,7 @@
                                             <p class="text-sm text-red-600 dark:text-red-400 font-medium">
                                                 Warning: This action is irreversible. All current data will be replaced.
                                             </p>
-                                            <input type="file" name="backup_file" accept=".sql" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 dark:file:bg-red-900/30 dark:file:text-red-300">
+                                            <input type="file" name="backup_file" accept=".zip,.sql" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 dark:file:bg-red-900/30 dark:file:text-red-300">
                                         </div>
                                         <button type="submit" class="inline-flex items-center justify-center w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium rounded-xl transition-colors">
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
