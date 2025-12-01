@@ -767,8 +767,6 @@
                             </div>
                         </div>
 
-                        </div>
-
                         @if(auth()->user()->isSuperAdmin())
                         <!-- Backup & Restore Tab -->
                         <div x-show="activeTab === 'backup'" class="space-y-8" x-cloak>
