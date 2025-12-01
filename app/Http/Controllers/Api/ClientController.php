@@ -2,71 +2,93 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Client;
 use Illuminate\Http\Request;
-use App\Http\Resources\ClientResource;
-use Illuminate\Support\Facades\Validator;
 
-class ClientController extends BaseApiController
+class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Client::query();
+        $query = Client::latest();
         
         if ($request->user()->branch_id) {
             $query->where('branch_id', $request->user()->branch_id);
         }
-
-        $clients = $query->latest()->paginate(10);
-        return $this->sendResponse(ClientResource::collection($clients)->response()->getData(true), 'Clients retrieved successfully.');
-    }
-
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:clients,email',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'branch_id' => 'required|exists:branches,id',
+        
+        $clients = $query->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $clients,
+            'message' => 'Clients retrieved successfully',
         ]);
-
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
-        }
-
-        $client = Client::create($request->all());
-        return $this->sendResponse(new ClientResource($client), 'Client created successfully.', 201);
     }
 
     public function show($id)
     {
-        $client = Client::find($id);
-        if (is_null($client)) {
-            return $this->sendError('Client not found.');
-        }
-        return $this->sendResponse(new ClientResource($client), 'Client retrieved successfully.');
+        $client = Client::findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $client,
+            'message' => 'Client retrieved successfully',
+        ]);
     }
 
-    public function update(Request $request, Client $client)
+    public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:clients,email,' . $client->id,
-            'branch_id' => 'sometimes|required|exists:branches,id',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:clients',
+            'phone' => 'nullable|string',
+            'company' => 'nullable|string',
+            'address' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        // Auto-assign branch_id if user has one
+        if ($request->user()->branch_id) {
+            $validated['branch_id'] = $request->user()->branch_id;
         }
 
-        $client->update($request->all());
-        return $this->sendResponse(new ClientResource($client), 'Client updated successfully.');
+        $client = Client::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $client,
+            'message' => 'Client created successfully',
+        ], 201);
     }
 
-    public function destroy(Client $client)
+    public function update(Request $request, $id)
     {
+        $client = Client::findOrFail($id);
+        
+        $validated = $request->validate([
+            'name' => 'string|max:255',
+            'email' => 'email|unique:clients,email,' . $id,
+            'phone' => 'nullable|string',
+            'company' => 'nullable|string',
+            'address' => 'nullable|string',
+        ]);
+
+        $client->update($validated);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $client,
+            'message' => 'Client updated successfully',
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $client = Client::findOrFail($id);
         $client->delete();
-        return $this->sendResponse([], 'Client deleted successfully.');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Client deleted successfully',
+        ]);
     }
 }

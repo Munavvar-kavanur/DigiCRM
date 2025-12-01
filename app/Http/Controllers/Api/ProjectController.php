@@ -2,72 +2,97 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Project;
 use Illuminate\Http\Request;
-use App\Http\Resources\ProjectResource;
-use Illuminate\Support\Facades\Validator;
 
-class ProjectController extends BaseApiController
+class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Project::query();
+        $query = Project::with('client')->latest();
         
         if ($request->user()->branch_id) {
             $query->where('branch_id', $request->user()->branch_id);
         }
-
-        $projects = $query->with('client')->latest()->paginate(10);
-        return $this->sendResponse(ProjectResource::collection($projects)->response()->getData(true), 'Projects retrieved successfully.');
-    }
-
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'client_id' => 'required|exists:clients,id',
-            'start_date' => 'required|date',
-            'deadline' => 'required|date|after_or_equal:start_date',
-            'status' => 'required|in:not_started,in_progress,on_hold,completed,cancelled',
-            'branch_id' => 'required|exists:branches,id',
+        
+        $projects = $query->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $projects,
+            'message' => 'Projects retrieved successfully',
         ]);
-
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
-        }
-
-        $project = Project::create($request->all());
-        return $this->sendResponse(new ProjectResource($project), 'Project created successfully.', 201);
     }
 
     public function show($id)
     {
-        $project = Project::with(['client', 'tasks', 'invoices'])->find($id);
-        if (is_null($project)) {
-            return $this->sendError('Project not found.');
-        }
-        return $this->sendResponse(new ProjectResource($project), 'Project retrieved successfully.');
+        $project = Project::with('client')->findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $project,
+            'message' => 'Project retrieved successfully',
+        ]);
     }
 
-    public function update(Request $request, Project $project)
+    public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'client_id' => 'sometimes|required|exists:clients,id',
-            'status' => 'sometimes|required|in:not_started,in_progress,on_hold,completed,cancelled',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'client_id' => 'required|exists:clients,id',
+            'description' => 'nullable|string',
+            'status' => 'required|in:pending,in_progress,completed,on_hold',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'budget' => 'nullable|numeric',
         ]);
 
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        // Auto-assign branch_id if user has one
+        if ($request->user()->branch_id) {
+            $validated['branch_id'] = $request->user()->branch_id;
         }
 
-        $project->update($request->all());
-        return $this->sendResponse(new ProjectResource($project), 'Project updated successfully.');
+        $project = Project::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $project->load('client'),
+            'message' => 'Project created successfully',
+        ], 201);
     }
 
-    public function destroy(Project $project)
+    public function update(Request $request, $id)
     {
+        $project = Project::findOrFail($id);
+        
+        $validated = $request->validate([
+            'name' => 'string|max:255',
+            'client_id' => 'exists:clients,id',
+            'description' => 'nullable|string',
+            'status' => 'in:pending,in_progress,completed,on_hold',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'budget' => 'nullable|numeric',
+        ]);
+
+        $project->update($validated);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $project->load('client'),
+            'message' => 'Project updated successfully',
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $project = Project::findOrFail($id);
         $project->delete();
-        return $this->sendResponse([], 'Project deleted successfully.');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Project deleted successfully',
+        ]);
     }
 }

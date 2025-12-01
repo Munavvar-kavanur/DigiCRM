@@ -2,79 +2,97 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
-use App\Http\Resources\InvoiceResource;
-use Illuminate\Support\Facades\Validator;
 
-class InvoiceController extends BaseApiController
+class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Invoice::query();
+        $query = Invoice::with('client')->latest();
         
         if ($request->user()->branch_id) {
             $query->where('branch_id', $request->user()->branch_id);
         }
-
-        $invoices = $query->with(['client', 'project'])->latest()->paginate(10);
-        return $this->sendResponse(InvoiceResource::collection($invoices)->response()->getData(true), 'Invoices retrieved successfully.');
-    }
-
-    public function store(Request $request)
-    {
-        // Simplified validation - real world would need items validation
-        $validator = Validator::make($request->all(), [
-            'client_id' => 'required|exists:clients,id',
-            'project_id' => 'nullable|exists:projects,id',
-            'issue_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:issue_date',
-            'total_amount' => 'required|numeric',
-            'status' => 'required|in:draft,sent,paid,overdue,cancelled',
-            'branch_id' => 'required|exists:branches,id',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
-        }
-
-        $invoice = Invoice::create($request->all());
         
-        // Handle items if present in request (assuming 'items' array)
-        if ($request->has('items')) {
-            $invoice->items()->createMany($request->items);
-        }
-
-        return $this->sendResponse(new InvoiceResource($invoice), 'Invoice created successfully.', 201);
+        $invoices = $query->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $invoices,
+            'message' => 'Invoices retrieved successfully',
+        ]);
     }
 
     public function show($id)
     {
-        $invoice = Invoice::with(['client', 'project', 'items', 'payments'])->find($id);
-        if (is_null($invoice)) {
-            return $this->sendError('Invoice not found.');
-        }
-        return $this->sendResponse(new InvoiceResource($invoice), 'Invoice retrieved successfully.');
+        $invoice = Invoice::with('client')->findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $invoice,
+            'message' => 'Invoice retrieved successfully',
+        ]);
     }
 
-    public function update(Request $request, Invoice $invoice)
+    public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'status' => 'sometimes|required|in:draft,sent,paid,overdue,cancelled',
-            'total_amount' => 'sometimes|numeric',
+        $validated = $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'invoice_number' => 'required|string|unique:invoices',
+            'issue_date' => 'required|date',
+            'due_date' => 'required|date',
+            'total_amount' => 'required|numeric',
+            'status' => 'required|in:draft,sent,paid,overdue,cancelled',
+            'notes' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        // Auto-assign branch_id if user has one
+        if ($request->user()->branch_id) {
+            $validated['branch_id'] = $request->user()->branch_id;
         }
 
-        $invoice->update($request->all());
-        return $this->sendResponse(new InvoiceResource($invoice), 'Invoice updated successfully.');
+        $invoice = Invoice::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $invoice->load('client'),
+            'message' => 'Invoice created successfully',
+        ], 201);
     }
 
-    public function destroy(Invoice $invoice)
+    public function update(Request $request, $id)
     {
+        $invoice = Invoice::findOrFail($id);
+        
+        $validated = $request->validate([
+            'client_id' => 'exists:clients,id',
+            'invoice_number' => 'string|unique:invoices,invoice_number,' . $id,
+            'issue_date' => 'date',
+            'due_date' => 'date',
+            'total_amount' => 'numeric',
+            'status' => 'in:draft,sent,paid,overdue,cancelled',
+            'notes' => 'nullable|string',
+        ]);
+
+        $invoice->update($validated);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $invoice->load('client'),
+            'message' => 'Invoice updated successfully',
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $invoice = Invoice::findOrFail($id);
         $invoice->delete();
-        return $this->sendResponse([], 'Invoice deleted successfully.');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Invoice deleted successfully',
+        ]);
     }
 }
