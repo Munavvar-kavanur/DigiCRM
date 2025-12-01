@@ -6,9 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\Invoice;
-use App\Models\Expense;
-use App\Models\Reminder;
-use App\Models\Branch;
 use App\Models\Setting;
 
 class DashboardController extends BaseApiController
@@ -35,7 +32,7 @@ class DashboardController extends BaseApiController
             }
         };
 
-        // --- KPIs ---
+        // Calculate KPIs
         $clientsQuery = Client::query();
         $applyBranch($clientsQuery);
         $totalClients = $clientsQuery->count();
@@ -43,34 +40,45 @@ class DashboardController extends BaseApiController
         $projectsQuery = Project::where('status', 'in_progress');
         $applyBranch($projectsQuery);
         $ongoingProjects = $projectsQuery->count();
+        
+        // Revenue
+        $revenueQuery = Invoice::where('status', 'paid');
+        $applyBranch($revenueQuery);
+        $totalRevenue = $revenueQuery->sum('total_amount');
 
-        $outstandingQuery = Invoice::where('status', '!=', 'paid');
+        $outstandingQuery = Invoice::whereIn('status', ['pending', 'sent']);
         $applyBranch($outstandingQuery);
-        $totalOutstanding = $outstandingQuery->sum('total_amount');
+        $outstandingRevenue = $outstandingQuery->sum('total_amount');
 
         $overdueQuery = Invoice::where('status', 'overdue');
         $applyBranch($overdueQuery);
         $overdueInvoices = $overdueQuery->count();
-
-        // Recent Activity
-        $recentProjects = Project::latest()->take(5);
-        $applyBranch($recentProjects);
         
-        $recentInvoices = Invoice::latest()->take(5);
-        $applyBranch($recentInvoices);
-
-        $data = [
-            'kpis' => [
-                'total_clients' => $totalClients,
-                'ongoing_projects' => $ongoingProjects,
-                'outstanding_revenue' => $totalOutstanding,
-                'overdue_invoices' => $overdueInvoices,
+        // Recent Projects
+        $recentProjectsQuery = Project::with('client')->latest()->take(5);
+        $applyBranch($recentProjectsQuery);
+        $recentProjects = $recentProjectsQuery->get();
+        
+        // Recent Invoices
+        $recentInvoicesQuery = Invoice::with('client')->latest()->take(5);
+        $applyBranch($recentInvoicesQuery);
+        $recentInvoices = $recentInvoicesQuery->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'kpis' => [
+                    'totalClients' => $totalClients,
+                    'ongoingProjects' => $ongoingProjects,
+                    'totalRevenue' => $totalRevenue,
+                    'outstandingRevenue' => $outstandingRevenue,
+                    'overdueInvoices' => $overdueInvoices,
+                ],
+                'recentProjects' => $recentProjects,
+                'recentInvoices' => $recentInvoices,
+                'currency_symbol' => $settings['currency_symbol'] ?? '$',
             ],
-            'recent_projects' => $recentProjects->get(),
-            'recent_invoices' => $recentInvoices->get(),
-            'currency_symbol' => $settings['currency_symbol'] ?? '$',
-        ];
-
-        return $this->sendResponse($data, 'Dashboard data retrieved successfully.');
+            'message' => 'Dashboard data retrieved successfully',
+        ]);
     }
 }
