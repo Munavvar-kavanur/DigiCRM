@@ -36,7 +36,13 @@ class Setting extends Model
         }
 
         // For Super Admin (or no branch), OR if branch setting was missing, return global setting
-        $globalSetting = self::where('key', $key)->whereNull('branch_id')->first();
+        $globalSetting = self::where('key', $key)
+            ->where(function($query) {
+                $query->whereNull('branch_id')
+                      ->orWhere('branch_id', 0)
+                      ->orWhere('branch_id', '');
+            })
+            ->first();
         
         return $globalSetting ? $globalSetting->value : $default;
     }
