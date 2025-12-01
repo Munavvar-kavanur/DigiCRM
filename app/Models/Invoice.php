@@ -78,7 +78,8 @@ class Invoice extends Model
             'GBP' => '£',
         ];
         
-        $currency = $this->currency ?? 'INR';
+        // Make sure to read the actual currency column
+        $currency = $this->attributes['currency'] ?? 'INR';
         return $symbols[$currency] ?? $currency;
     }
 }
