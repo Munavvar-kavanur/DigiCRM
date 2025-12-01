@@ -31,6 +31,7 @@ class Invoice extends Model
         'balance_due',
         'terms',
         'notes',
+        'currency',
     ];
 
     protected $casts = [
