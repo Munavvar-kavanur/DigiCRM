@@ -69,6 +69,9 @@ class SettingController extends Controller
         $branchId = null;
         if (auth()->user()->isSuperAdmin()) {
             $branchId = $request->branch_id;
+            if ($branchId === '') {
+                $branchId = null;
+            }
         } else {
             $branchId = auth()->user()->branch_id;
         }

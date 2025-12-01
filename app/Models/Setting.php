@@ -30,10 +30,12 @@ class Setting extends Model
                 ->where('branch_id', $targetBranchId)
                 ->first();
             
-            return $branchSetting ? $branchSetting->value : $default;
+            if ($branchSetting) {
+                return $branchSetting->value;
+            }
         }
 
-        // For Super Admin (or no branch), return global setting
+        // For Super Admin (or no branch), OR if branch setting was missing, return global setting
         $globalSetting = self::where('key', $key)->whereNull('branch_id')->first();
         
         return $globalSetting ? $globalSetting->value : $default;
@@ -47,12 +49,8 @@ class Setting extends Model
         $data = ['value' => $value];
         $conditions = ['key' => $key];
 
-        // Use provided branchId if available (even if it's explicitly null, though we usually pass a value now)
-        // However, we need to distinguish between "argument not provided" (null default) and "explicit null passed".
-        // But since we want to support passing a specific branch ID, let's prioritize the argument if it's not null.
-        // If it IS null, we fall back to the user's branch.
-        
-        if (!is_null($branchId)) {
+        // Use provided branchId if available
+        if (!is_null($branchId) && $branchId !== '') {
             $conditions['branch_id'] = $branchId;
         } elseif (auth()->check() && auth()->user()->branch_id) {
             $conditions['branch_id'] = auth()->user()->branch_id;
