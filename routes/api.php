@@ -45,4 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('tasks', TaskController::class, ['as' => 'api']);
     Route::apiResource('employees', EmployeeController::class, ['as' => 'api']);
     Route::apiResource('payrolls', PayrollController::class, ['as' => 'api']);
+
+    // Chat & Messaging
+    Route::get('/conversations', [\App\Http\Controllers\Api\ConversationController::class, 'index']);
+    Route::post('/conversations', [\App\Http\Controllers\Api\ConversationController::class, 'store']);
+    Route::get('/conversations/{conversation}', [\App\Http\Controllers\Api\ConversationController::class, 'show']);
+    Route::post('/conversations/{conversation}/read', [\App\Http\Controllers\Api\ConversationController::class, 'markAsRead']);
+    Route::post('/conversations/{conversation}/messages', [\App\Http\Controllers\Api\MessageController::class, 'store']);
 });

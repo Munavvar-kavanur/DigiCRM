@@ -81,6 +81,10 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
 
+    // Chat Routes
+    Route::get('/chat', [\App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/{conversation}', [\App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
+
     Route::resource('reminders', \App\Http\Controllers\ReminderController::class);
     Route::patch('reminders/{reminder}/complete', [\App\Http\Controllers\ReminderController::class, 'markAsComplete'])->name('reminders.complete');
 });
