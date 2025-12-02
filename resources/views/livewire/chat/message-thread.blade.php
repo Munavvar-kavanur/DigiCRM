@@ -170,6 +170,41 @@
                                                     </div>
                                                 </div>
 
+                                            {{-- Audio File --}}
+                                            @elseif($attachmentType === 'audio')
+                                                <div class="flex items-center space-x-3 p-3 rounded-lg {{ $message->user_id === auth()->id() ? 'bg-indigo-500' : 'bg-gray-100 dark:bg-gray-700' }}">
+                                                    <button class="flex-shrink-0 p-2 rounded-full hover:bg-black/10 transition-colors" 
+                                                           x-data="{ playing: false }"
+                                                           @click="
+                                                               const audio = $el.nextElementSibling;
+                                                               if (playing) {
+                                                                   audio.pause();
+                                                                   playing = false;
+                                                               } else {
+                                                                   audio.play();
+                                                                   playing = true;
+                                                               }
+                                                               audio.onended = () => playing = false;
+                                                           ">
+                                                        <svg x-show="!playing" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path>
+                                                        </svg>
+                                                        <svg x-show="playing" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" style="display: none;">
+                                                            <path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <audio src="{{ Storage::url($attachment['path']) }}" class="hidden"></audio>
+                                                    <div class="flex-1">
+                                                        <div class="flex items-center space-x-2">
+                                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd"></path>
+                                                            </svg>
+                                                            <span class="text-sm font-medium">{{ $attachment['name'] }}</span>
+                                                        </div>
+                                                        <p class="text-xs opacity-75">{{ number_format($attachment['size'] / 1024, 1) }} KB</p>
+                                                    </div>
+                                                </div>
+
                                             {{-- Document --}}
                                             @else
                                                 <a href="{{ Storage::url($attachment['path']) }}" target="_blank" download
@@ -208,8 +243,8 @@
 
         {{-- Message Input --}}
         <div class="p-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-            {{-- Attachment/Voice Preview --}}
-            @if(!empty($attachments) || $voiceNote)
+            {{-- Attachment/Voice/Audio Preview --}}
+            @if(!empty($attachments) || $voiceNote || $audioFile)
                 <div class="mb-3 flex flex-wrap gap-2">
                     @if($voiceNote)
                         <div class="relative inline-flex items-center px-3 py-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
@@ -218,6 +253,20 @@
                             </svg>
                             <span class="text-sm text-indigo-700 dark:text-indigo-300">Voice Message</span>
                             <button wire:click="removeVoiceNote" type="button" class="ml-2 text-red-500 hover:text-red-700">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    @endif
+
+                    @if($audioFile)
+                        <div class="relative inline-flex items-center px-3 py-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                            <svg class="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-sm text-orange-700 dark:text-orange-300">Audio File</span>
+                            <button wire:click="removeAudioFile" type="button" class="ml-2 text-red-500 hover:text-red-700">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
@@ -274,6 +323,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                             </svg>
                             <span class="text-sm text-gray-700 dark:text-gray-300">Document</span>
+                        </label>
+
+                        <label wire:click="setAttachmentType('audio')" class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="file" wire:model="audioFile" accept="audio/*" class="hidden">
+                            <svg class="w-5 h-5 mr-3 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Audio File</span>
                         </label>
                         
                         <div class="relative">

@@ -16,13 +16,15 @@ class MessageThread extends Component
     public $newMessage = '';
     public $conversation;
     public $attachments = [];
-    public $attachmentType = 'document'; // document, photo, voice
+    public $attachmentType = 'document'; // document, photo, voice, audio
     public $voiceNote = null;
+    public $audioFile = null;
 
     protected $rules = [
         'newMessage' => 'nullable|string|max:5000',
         'attachments.*' => 'nullable|file|max:10240', // 10MB max
         'voiceNote' => 'nullable|file|mimes:mp3,wav,ogg,webm|max:5120', // 5MB max for voice
+        'audioFile' => 'nullable|file|mimes:mp3,wav,ogg,m4a,aac,flac|max:10240', // 10MB max for audio
     ];
 
     public function mount($conversationId = null)
@@ -48,8 +50,8 @@ class MessageThread extends Component
 
     public function sendMessage()
     {
-        // Validate that either message, attachments, or voice note are present
-        if (empty(trim($this->newMessage)) && empty($this->attachments) && !$this->voiceNote) {
+        // Validate that either message, attachments, voice note, or audio file are present
+        if (empty(trim($this->newMessage)) && empty($this->attachments) && !$this->voiceNote && !$this->audioFile) {
             return;
         }
 
@@ -70,6 +72,18 @@ class MessageThread extends Component
                 'size' => $this->voiceNote->getSize(),
                 'type' => $this->voiceNote->getMimeType(),
                 'attachment_type' => 'voice',
+            ];
+        }
+        
+        // Handle audio file
+        if ($this->audioFile) {
+            $path = $this->audioFile->store('chat-attachments/audio', 'public');
+            $attachmentPaths[] = [
+                'name' => $this->audioFile->getClientOriginalName(),
+                'path' => $path,
+                'size' => $this->audioFile->getSize(),
+                'type' => $this->audioFile->getMimeType(),
+                'attachment_type' => 'audio',
             ];
         }
         
@@ -103,7 +117,7 @@ class MessageThread extends Component
             'attachments' => !empty($attachmentPaths) ? $attachmentPaths : null,
         ]);
 
-        $this->reset(['newMessage', 'attachments', 'voiceNote', 'attachmentType']);
+        $this->reset(['newMessage', 'attachments', 'voiceNote', 'audioFile', 'attachmentType']);
         $this->conversation->refresh();
         $this->dispatch('messageSent');
         $this->dispatch('refreshConversations');
@@ -112,7 +126,7 @@ class MessageThread extends Component
     public function setAttachmentType($type)
     {
         $this->attachmentType = $type;
-        $this->reset(['attachments', 'voiceNote']);
+        $this->reset(['attachments', 'voiceNote', 'audioFile']);
     }
 
     public function removeAttachment($index)
@@ -124,6 +138,11 @@ class MessageThread extends Component
     public function removeVoiceNote()
     {
         $this->voiceNote = null;
+    }
+
+    public function removeAudioFile()
+    {
+        $this->audioFile = null;
     }
 
     public function getMessagesProperty()
