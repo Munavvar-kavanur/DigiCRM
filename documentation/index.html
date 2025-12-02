@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigiCRM - Documentation</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --text-color: #374151;
+            --bg-color: #f9fafb;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background-color: white;
+            border-right: 1px solid #e5e7eb;
+            position: fixed;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            display: block;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6b7280;
+            font-weight: 500;
+            display: block;
+            padding: 0.5rem 0;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 3rem 4rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #111827;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        ul,
+        ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background-color: #f3f4f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #ef4444;
+        }
+
+        pre {
+            background-color: #1f2937;
+            color: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .feature-box {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 0.5rem;
+        }
+
+        .badge-new {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <a href="#" class="logo">DigiCRM</a>
+        <ul class="nav-links">
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#requirements">Server Requirements</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#configuration">Configuration</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#chat-system">Chat System <span class="badge badge-new">New</span></a></li>
+            <li><a href="#folder-structure">Folder Structure</a></li>
+            <li><a href="#support">Support</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <section id="introduction">
+            <h1>DigiCRM Documentation</h1>
+            <p>Welcome to <strong>DigiCRM</strong> - The Ultimate Client Relationship Management System with Advanced
+                Chat capabilities.</p>
+            <p>DigiCRM is a powerful, modern, and secure web application designed to help businesses manage clients,
+                projects, invoices, and team communication efficiently. Built with <strong>Laravel 12</strong> and
+                <strong>Livewire</strong>, it offers a seamless single-page application (SPA) experience.</p>
+        </section>
+
+        <section id="requirements">
+            <h2>Server Requirements</h2>
+            <p>Before installing DigiCRM, ensure your server meets the following requirements:</p>
+            <ul>
+                <li>PHP >= 8.2</li>
+                <li>MySQL >= 5.7 or MariaDB >= 10.3</li>
+                <li>BCMath PHP Extension</li>
+                <li>Ctype PHP Extension</li>
+                <li>Fileinfo PHP Extension</li>
+                <li>JSON PHP Extension</li>
+                <li>Mbstring PHP Extension</li>
+                <li>OpenSSL PHP Extension</li>
+                <li>PDO PHP Extension</li>
+                <li>Tokenizer PHP Extension</li>
+                <li>XML PHP Extension</li>
+            </ul>
+        </section>
+
+        <section id="installation">
+            <h2>Installation Guide</h2>
+
+            <h3>1. Upload Files</h3>
+            <p>Unzip the downloaded package and upload all files to your server's public directory (e.g.,
+                <code>public_html</code>).</p>
+
+            <h3>2. Database Setup</h3>
+            <p>Create a new MySQL database via your hosting control panel (cPanel, Plesk, etc.). Note down the database
+                name, username, and password.</p>
+
+            <h3>3. Environment Configuration</h3>
+            <p>Rename the <code>.env.example</code> file to <code>.env</code>. Open it and update the database
+                credentials:</p>
+            <pre><code>DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_database_name
+DB_USERNAME=your_database_user
+DB_PASSWORD=your_database_password</code></pre>
+
+            <h3>4. Install Dependencies & Migrations</h3>
+            <p>Run the following commands in your terminal (SSH):</p>
+            <pre><code>composer install
+npm install
+npm run build
+php artisan key:generate
+php artisan migrate --seed
+php artisan storage:link</code></pre>
+            <p>The <code>--seed</code> command will create a default Super Admin account.</p>
+
+            <div class="feature-box">
+                <div class="feature-title">Default Login</div>
+                <p><strong>Email:</strong> admin@example.com<br>
+                    <strong>Password:</strong> password
+                </p>
+            </div>
+        </section>
+
+        <section id="configuration">
+            <h2>Configuration</h2>
+
+            <h3>Mail Setup</h3>
+            <p>To enable email notifications, configure your SMTP settings in the <code>.env</code> file:</p>
+            <pre><code>MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"</code></pre>
+        </section>
+
+        <section id="features">
+            <h2>Key Features</h2>
+            <ul>
+                <li><strong>Client Management:</strong> Add, edit, and manage client details.</li>
+                <li><strong>Project Management:</strong> Track projects, assign teams, and monitor progress.</li>
+                <li><strong>Invoicing & Estimates:</strong> Create professional invoices and estimates.</li>
+                <li><strong>Role-Based Access:</strong> Super Admin, Branch Admin, and Employee roles.</li>
+                <li><strong>Dark Mode:</strong> Fully supported dark mode for better user experience.</li>
+                <li><strong>Multi-Branch Support:</strong> Manage multiple business branches from one dashboard.</li>
+            </ul>
+        </section>
+
+        <section id="chat-system">
+            <h2>Advanced Chat System</h2>
+            <p>DigiCRM comes with a state-of-the-art chat system designed for team collaboration.</p>
+
+            <div class="feature-box">
+                <div class="feature-title">🎤 Voice Messages</div>
+                <p>Record and send voice notes directly from the browser. Includes a built-in audio player with
+                    play/pause functionality.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-title">🔊 Audio File Sharing</div>
+                <p>Upload and share existing audio files (MP3, WAV, etc.). Perfect for sharing music, podcasts, or
+                    pre-recorded updates.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-title">📷 Photo Previews</div>
+                <p>Images are displayed with beautiful inline previews. Click to view full size.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-title">📄 Document Sharing</div>
+                <p>Share PDF, Word, Excel, and other documents easily.</p>
+            </div>
+        </section>
+
+        <section id="folder-structure">
+            <h2>Folder Structure</h2>
+            <pre><code>/
+├── app/                # Core application logic (Models, Controllers)
+├── config/             # Configuration files
+├── database/           # Migrations and seeders
+├── public/             # Publicly accessible files (assets, index.php)
+├── resources/          # Views (Blade templates), CSS, JS
+│   ├── views/
+│   │   ├── livewire/   # Livewire components
+│   │   └── layouts/    # App layouts
+├── routes/             # Web and API routes
+├── storage/            # Logs, uploaded files
+└── .env                # Environment variables</code></pre>
+        </section>
+
+        <section id="support">
+            <h2>Support</h2>
+            <p>Thank you for purchasing DigiCRM! If you have any questions that are beyond the scope of this help file,
+                please feel free to email via my user page contact form.</p>
+            <!-- <p><strong>Support Email:</strong> support@digicrm.com</p> -->
+            <p><strong>Support Email:</strong> hellodigibayt@gmail.com</p>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 DigiCRM. All rights reserved.</p>
+        </footer>
+    </main>
+
+    <script>
+        // Simple script to highlight active nav link
+        const sections = document.querySelectorAll('section');
+        const navLi = document.querySelectorAll('.nav-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 60) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLi.forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href').includes(current)) {
+                    a.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
