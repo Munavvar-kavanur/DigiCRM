@@ -16,10 +16,13 @@ class MessageThread extends Component
     public $newMessage = '';
     public $conversation;
     public $attachments = [];
+    public $attachmentType = 'document'; // document, photo, voice
+    public $voiceNote = null;
 
     protected $rules = [
         'newMessage' => 'nullable|string|max:5000',
         'attachments.*' => 'nullable|file|max:10240', // 10MB max
+        'voiceNote' => 'nullable|file|mimes:mp3,wav,ogg,webm|max:5120', // 5MB max for voice
     ];
 
     public function mount($conversationId = null)
@@ -45,8 +48,8 @@ class MessageThread extends Component
 
     public function sendMessage()
     {
-        // Validate that either message or attachments are present
-        if (empty(trim($this->newMessage)) && empty($this->attachments)) {
+        // Validate that either message, attachments, or voice note are present
+        if (empty(trim($this->newMessage)) && empty($this->attachments) && !$this->voiceNote) {
             return;
         }
 
@@ -58,15 +61,37 @@ class MessageThread extends Component
 
         $attachmentPaths = [];
         
+        // Handle voice note
+        if ($this->voiceNote) {
+            $path = $this->voiceNote->store('chat-attachments/voice', 'public');
+            $attachmentPaths[] = [
+                'name' => 'Voice Message',
+                'path' => $path,
+                'size' => $this->voiceNote->getSize(),
+                'type' => $this->voiceNote->getMimeType(),
+                'attachment_type' => 'voice',
+            ];
+        }
+        
         // Handle file uploads
         if (!empty($this->attachments)) {
             foreach ($this->attachments as $attachment) {
-                $path = $attachment->store('chat-attachments', 'public');
+                $mimeType = $attachment->getMimeType();
+                $isImage = str_starts_with($mimeType, 'image/');
+                
+                // Store in different folders based on type
+                $folder = $this->attachmentType === 'photo' || $isImage 
+                    ? 'chat-attachments/photos' 
+                    : 'chat-attachments/documents';
+                
+                $path = $attachment->store($folder, 'public');
+                
                 $attachmentPaths[] = [
                     'name' => $attachment->getClientOriginalName(),
                     'path' => $path,
                     'size' => $attachment->getSize(),
-                    'type' => $attachment->getMimeType(),
+                    'type' => $mimeType,
+                    'attachment_type' => $isImage && $this->attachmentType === 'photo' ? 'photo' : 'document',
                 ];
             }
         }
@@ -78,16 +103,27 @@ class MessageThread extends Component
             'attachments' => !empty($attachmentPaths) ? $attachmentPaths : null,
         ]);
 
-        $this->reset(['newMessage', 'attachments']);
+        $this->reset(['newMessage', 'attachments', 'voiceNote', 'attachmentType']);
         $this->conversation->refresh();
         $this->dispatch('messageSent');
         $this->dispatch('refreshConversations');
+    }
+
+    public function setAttachmentType($type)
+    {
+        $this->attachmentType = $type;
+        $this->reset(['attachments', 'voiceNote']);
     }
 
     public function removeAttachment($index)
     {
         unset($this->attachments[$index]);
         $this->attachments = array_values($this->attachments);
+    }
+
+    public function removeVoiceNote()
+    {
+        $this->voiceNote = null;
     }
 
     public function getMessagesProperty()
