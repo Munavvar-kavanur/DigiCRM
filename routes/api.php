@@ -37,12 +37,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
     // Core Resources
-    Route::apiResource('clients', ClientController::class);
-    Route::apiResource('projects', ProjectController::class);
-    Route::apiResource('invoices', InvoiceController::class);
-    Route::apiResource('estimates', EstimateController::class);
-    Route::apiResource('expenses', ExpenseController::class);
-    Route::apiResource('tasks', TaskController::class);
-    Route::apiResource('employees', EmployeeController::class);
-    Route::apiResource('payrolls', PayrollController::class);
+    Route::apiResource('clients', ClientController::class, ['as' => 'api']);
+    Route::apiResource('projects', ProjectController::class, ['as' => 'api']);
+    Route::apiResource('invoices', InvoiceController::class, ['as' => 'api']);
+    Route::apiResource('estimates', EstimateController::class, ['as' => 'api']);
+    Route::apiResource('expenses', ExpenseController::class, ['as' => 'api']);
+    Route::apiResource('tasks', TaskController::class, ['as' => 'api']);
+    Route::apiResource('employees', EmployeeController::class, ['as' => 'api']);
+    Route::apiResource('payrolls', PayrollController::class, ['as' => 'api']);
 });

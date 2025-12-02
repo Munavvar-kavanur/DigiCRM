@@ -12,6 +12,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/test-routes', function () {
+    return view('test-routes');
+});
+
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
