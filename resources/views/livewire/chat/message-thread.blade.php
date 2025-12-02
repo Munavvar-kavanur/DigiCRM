@@ -276,44 +276,59 @@
                             <span class="text-sm text-gray-700 dark:text-gray-300">Document</span>
                         </label>
                         
-                        <label class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer rounded-b-xl"
-                               x-data="{ 
-                                   recording: false, 
-                                   mediaRecorder: null,
-                                   startRecording() {
-                                       navigator.mediaDevices.getUserMedia({ audio: true })
-                                           .then(stream => {
-                                               this.mediaRecorder = new MediaRecorder(stream);
-                                               const chunks = [];
-                                               
-                                               this.mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-                                               this.mediaRecorder.onstop = () => {
-                                                   const blob = new Blob(chunks, { type: 'audio/webm' });
-                                                   const file = new File([blob], 'voice-message.webm', { type: 'audio/webm' });
-                                                   $wire.voiceNote = file;
-                                                   stream.getTracks().forEach(track => track.stop());
-                                               };
-                                               
-                                               this.mediaRecorder.start();
-                                               this.recording = true;
-                                           })
-                                           .catch(err => alert('Microphone access denied'));
-                                   },
-                                   stopRecording() {
-                                       if (this.mediaRecorder) {
-                                           this.mediaRecorder.stop();
-                                           this.recording = false;
+                        <div class="relative">
+                            <input type="file" id="voice-input" wire:model="voiceNote" class="hidden" accept="audio/*">
+                            
+                            <label class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer rounded-b-xl"
+                                   x-data="{ 
+                                       recording: false, 
+                                       mediaRecorder: null,
+                                       startRecording() {
+                                           navigator.mediaDevices.getUserMedia({ audio: true })
+                                               .then(stream => {
+                                                   this.mediaRecorder = new MediaRecorder(stream);
+                                                   const chunks = [];
+                                                   
+                                                   this.mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+                                                   this.mediaRecorder.onstop = () => {
+                                                       const blob = new Blob(chunks, { type: 'audio/webm' });
+                                                       const file = new File([blob], 'voice-message-' + Date.now() + '.webm', { type: 'audio/webm' });
+                                                       
+                                                       // Create a DataTransfer to set the file input value
+                                                       const dataTransfer = new DataTransfer();
+                                                       dataTransfer.items.add(file);
+                                                       document.getElementById('voice-input').files = dataTransfer.files;
+                                                       
+                                                       // Trigger Livewire to detect the file
+                                                       document.getElementById('voice-input').dispatchEvent(new Event('change', { bubbles: true }));
+                                                       
+                                                       stream.getTracks().forEach(track => track.stop());
+                                                   };
+                                                   
+                                                   this.mediaRecorder.start();
+                                                   this.recording = true;
+                                               })
+                                               .catch(err => {
+                                                   console.error('Microphone error:', err);
+                                                   alert('Microphone access denied. Please allow microphone access in your browser settings.');
+                                               });
+                                       },
+                                       stopRecording() {
+                                           if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                                               this.mediaRecorder.stop();
+                                               this.recording = false;
+                                           }
                                        }
-                                   }
-                               }">
-                            <div @click="recording ? stopRecording() : startRecording()" class="flex items-center w-full">
-                                <svg class="w-5 h-5 mr-3" :class="recording ? 'text-red-500 animate-pulse' : 'text-purple-500'" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z"></path>
-                                    <path d="M5.5 9.643a.75.75 0 00-1.5 0V10c0 3.06 2.29 5.585 5.25 5.954V17.5h-1.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-1.5v-1.546A6.001 6.001 0 0016 10v-.357a.75.75 0 00-1.5 0V10a4.5 4.5 0 01-9 0v-.357z"></path>
-                                </svg>
-                                <span class="text-sm text-gray-700 dark:text-gray-300" x-text="recording ? 'Stop Recording' : 'Voice Message'"></span>
-                            </div>
-                        </label>
+                                   }">
+                                <div @click="recording ? stopRecording() : startRecording()" class="flex items-center w-full">
+                                    <svg class="w-5 h-5 mr-3" :class="recording ? 'text-red-500 animate-pulse' : 'text-purple-500'" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z"></path>
+                                        <path d="M5.5 9.643a.75.75 0 00-1.5 0V10c0 3.06 2.29 5.585 5.25 5.954V17.5h-1.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-1.5v-1.546A6.001 6.001 0 0016 10v-.357a.75.75 0 00-1.5 0V10a4.5 4.5 0 01-9 0v-.357z"></path>
+                                    </svg>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300" x-text="recording ? 'Stop Recording' : 'Voice Message'"></span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
