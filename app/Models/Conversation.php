@@ -105,6 +105,20 @@ class Conversation extends Model
         $this->participantRecords()
             ->where('user_id', $userId)
             ->update(['last_read_at' => now()]);
+
+        // Mark individual messages as read
+        $this->messages()
+            ->where('user_id', '!=', $userId)
+            ->whereDoesntHave('reads', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->get()
+            ->each(function ($message) use ($userId) {
+                $message->reads()->create([
+                    'user_id' => $userId,
+                    'read_at' => now(),
+                ]);
+            });
     }
 
     /**

@@ -103,7 +103,10 @@
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1 ml-1">{{ $message->user->name }}</p>
                             @endif
                             
-                            <div class="px-4 py-2 rounded-2xl shadow-sm {{ $message->user_id === auth()->id() 
+                            <div class="relative group" x-data="{ showMenu: false }">
+                            <div @contextmenu.prevent="showMenu = true" 
+                                 @click.away="showMenu = false"
+                                 class="px-4 py-2 rounded-2xl shadow-sm {{ $message->user_id === auth()->id() 
                                 ? 'bg-indigo-600 text-white rounded-br-none' 
                                 : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-none' }}">
                                 
@@ -222,6 +225,29 @@
                                     </div>
                                 @endif
                             </div>
+
+                            {{-- Context Menu --}}
+                            <div x-show="showMenu" 
+                                 x-transition
+                                 class="absolute z-20 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-1"
+                                 :class="{{ $message->user_id === auth()->id() }} ? 'right-0' : 'left-0'"
+                                 style="top: 100%; display: none;">
+                                
+                                <button @click="showMenu = false; $wire.getMessageInfo({{ $message->id }})" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    Info
+                                </button>
+                                
+                                <button @click="showMenu = false; $wire.deleteForMe({{ $message->id }})" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    Delete for me
+                                </button>
+
+                                @if($message->user_id === auth()->id())
+                                    <button @click="showMenu = false; $wire.deleteForEveryone({{ $message->id }})" class="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        Delete for everyone
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
                             
                             <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 {{ $message->user_id === auth()->id() ? 'text-right mr-1' : 'ml-1' }}">
                                 {{ $message->created_at->format('g:i A') }}
@@ -414,4 +440,54 @@
             </form>
         </div>
     @endif
+
+    {{-- Message Info Modal --}}
+    <div x-data="{ open: false, message: null, deliveredAt: null, readBy: [] }"
+         @open-message-info-modal.window="
+            open = true; 
+            message = $event.detail.message; 
+            deliveredAt = $event.detail.delivered_at; 
+            readBy = $event.detail.read_by;
+         "
+         x-show="open" 
+         style="display: none;"
+         class="fixed inset-0 z-50 overflow-y-auto"
+         aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="open = false"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
+                        Message Info
+                    </h3>
+                    <div class="mt-4 space-y-3">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            <span class="font-bold">Sent:</span> <span x-text="message ? new Date(message.created_at).toLocaleString() : ''"></span>
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            <span class="font-bold">Delivered:</span> <span x-text="deliveredAt ? new Date(deliveredAt).toLocaleString() : 'Pending'"></span>
+                        </p>
+                        <div>
+                            <p class="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">Read By:</p>
+                            <ul class="text-sm text-gray-500 dark:text-gray-400 max-h-40 overflow-y-auto">
+                                <template x-for="read in readBy" :key="read.id">
+                                    <li class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                                        <span x-text="read.user.name"></span>
+                                        <span x-text="new Date(read.read_at).toLocaleString()" class="text-xs text-gray-400"></span>
+                                    </li>
+                                </template>
+                                <li x-show="readBy.length === 0" class="text-gray-400 italic">Not read yet</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="open = false" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

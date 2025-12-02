@@ -13,11 +13,15 @@ class Message extends Model
         'message',
         'attachments',
         'is_system_message',
+        'deleted_by',
+        'delivered_at',
     ];
 
     protected $casts = [
         'attachments' => 'array',
         'is_system_message' => 'boolean',
+        'deleted_by' => 'array',
+        'delivered_at' => 'datetime',
     ];
 
     /**
@@ -34,6 +38,14 @@ class Message extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the reads for the message
+     */
+    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MessageRead::class);
     }
 
     /**

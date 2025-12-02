@@ -151,7 +151,47 @@ class MessageThread extends Component
             return collect();
         }
 
-        return $this->conversation->messages()->with('user')->get();
+        return $this->conversation->messages()
+            ->with('user')
+            ->where(function ($query) {
+                $query->whereNull('deleted_by')
+                      ->orWhereJsonDoesntContain('deleted_by', auth()->id());
+            })
+            ->get();
+    }
+
+    public function deleteForMe($messageId)
+    {
+        $message = Message::find($messageId);
+        if ($message) {
+            $deletedBy = $message->deleted_by ?? [];
+            if (!in_array(auth()->id(), $deletedBy)) {
+                $deletedBy[] = auth()->id();
+                $message->update(['deleted_by' => $deletedBy]);
+            }
+        }
+        $this->dispatch('messagesLoaded'); // Refresh view
+    }
+
+    public function deleteForEveryone($messageId)
+    {
+        $message = Message::find($messageId);
+        if ($message && $message->user_id === auth()->id()) {
+            $message->delete();
+        }
+        $this->dispatch('messagesLoaded'); // Refresh view
+    }
+
+    public function getMessageInfo($messageId)
+    {
+        $message = Message::with('reads.user')->find($messageId);
+        if ($message) {
+            $this->dispatch('openMessageInfoModal', [
+                'message' => $message,
+                'delivered_at' => $message->delivered_at,
+                'read_by' => $message->reads
+            ]);
+        }
     }
 
     public function pollMessages()
