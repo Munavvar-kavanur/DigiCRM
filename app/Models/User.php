@@ -92,4 +92,17 @@ class User extends Authenticatable
     {
         return $this->belongsTo(PayrollType::class);
     }
+
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')
+            ->withPivot('last_read_at')
+            ->withTimestamps()
+            ->orderBy('last_message_at', 'desc');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
 }
