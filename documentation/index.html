@@ -188,6 +188,7 @@
             <li><a href="#features">Features</a></li>
             <li><a href="#chat-system">Chat System <span class="badge badge-new">New</span></a></li>
             <li><a href="#folder-structure">Folder Structure</a></li>
+            <li><a href="#troubleshooting">Troubleshooting</a></li>
             <li><a href="#support">Support</a></li>
         </ul>
     </nav>
@@ -199,7 +200,8 @@
                 Chat capabilities.</p>
             <p>DigiCRM is a powerful, modern, and secure web application designed to help businesses manage clients,
                 projects, invoices, and team communication efficiently. Built with <strong>Laravel 12</strong> and
-                <strong>Livewire</strong>, it offers a seamless single-page application (SPA) experience.</p>
+                <strong>Livewire</strong>, it offers a seamless single-page application (SPA) experience.
+            </p>
         </section>
 
         <section id="requirements">
@@ -225,7 +227,8 @@
 
             <h3>1. Upload Files</h3>
             <p>Unzip the downloaded package and upload all files to your server's public directory (e.g.,
-                <code>public_html</code>).</p>
+                <code>public_html</code>).
+            </p>
 
             <h3>2. Database Setup</h3>
             <p>Create a new MySQL database via your hosting control panel (cPanel, Plesk, etc.). Note down the database
@@ -327,6 +330,32 @@ MAIL_FROM_NAME="${APP_NAME}"</code></pre>
 ├── routes/             # Web and API routes
 ├── storage/            # Logs, uploaded files
 └── .env                # Environment variables</code></pre>
+        </section>
+
+        <section id="troubleshooting">
+            <h2>Troubleshooting</h2>
+
+            <div class="feature-box">
+                <div class="feature-title">Error: "Table already exists" during migration</div>
+                <p><strong>Cause:</strong> Your database is not empty.</p>
+                <p><strong>Solution:</strong> Please ensure you are using a completely empty database before running the
+                    installation command. Drop all existing tables and try again.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-title">Images or Avatars not showing</div>
+                <p><strong>Cause:</strong> The storage symbolic link is missing.</p>
+                <p><strong>Solution:</strong> Run the following command in your terminal:</p>
+                <pre><code>php artisan storage:link</code></pre>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-title">500 Server Error / Permission Denied</div>
+                <p><strong>Cause:</strong> The server cannot write to the storage directories.</p>
+                <p><strong>Solution:</strong> Set the correct permissions for the storage and bootstrap folders:</p>
+                <pre><code>chmod -R 775 storage
+chmod -R 775 bootstrap/cache</code></pre>
+            </div>
         </section>
 
         <section id="support">
