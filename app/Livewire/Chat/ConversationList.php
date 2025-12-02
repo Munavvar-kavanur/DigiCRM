@@ -36,20 +36,25 @@ class ConversationList extends Component
 
         // Apply search filter
         if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('title', 'like', '%' . $this->search . '%')
-                  ->orWhereHas('participants', function ($pq) {
-                      $pq->where('name', 'like', '%' . $this->search . '%');
+            $searchTerm = $this->search;
+            $query->where(function ($q) use ($searchTerm) {
+                // Search in conversation title
+                $q->where('conversations.title', 'like', '%' . $searchTerm . '%')
+                  // Search in participant names (excluding current user)
+                  ->orWhereHas('participants', function ($pq) use ($searchTerm) {
+                      $pq->where('users.id', '!=', auth()->id())
+                         ->where('users.name', 'like', '%' . $searchTerm . '%');
                   });
             });
         }
 
         // Apply type filter
         if ($this->filterType !== 'all') {
-            $query->where('type', $this->filterType);
+            $query->where('conversations.type', $this->filterType);
         }
 
-        return $query->with(['latestMessage', 'participants', 'project'])
+        return $query->with(['latestMessage.user', 'participants', 'project'])
+            ->orderBy('last_message_at', 'desc')
             ->get()
             ->map(function ($conversation) {
                 $conversation->unread_count = $conversation->getUnreadCountForUser(auth()->id());
