@@ -46,7 +46,34 @@ class ChatBox extends Component
             'selectedUsers' => 'required|array|min:1',
             'newConversationType' => 'required|in:direct,group,project,support',
             'conversationTitle' => 'required_if:newConversationType,group,project',
+            'selectedProjectId' => 'required_if:newConversationType,project',
         ]);
+
+        // For direct messages, check if conversation already exists
+        if ($this->newConversationType === 'direct' && count($this->selectedUsers) === 1) {
+            $otherUserId = $this->selectedUsers[0];
+            
+            // Find existing direct conversation with this user
+            $existingConversation = Conversation::where('type', 'direct')
+                ->whereHas('participants', function ($q) use ($otherUserId) {
+                    $q->where('users.id', $otherUserId);
+                })
+                ->whereHas('participants', function ($q) {
+                    $q->where('users.id', auth()->id());
+                })
+                ->first();
+
+            if ($existingConversation) {
+                // Open existing conversation instead of creating new one
+                $this->showNewConversationModal = false;
+                $this->selectedConversationId = $existingConversation->id;
+                $this->dispatch('conversationSelected', conversationId: $existingConversation->id);
+                $this->dispatch('refreshConversations');
+                
+                session()->flash('info', 'Opened existing conversation');
+                return;
+            }
+        }
 
         $conversation = Conversation::create([
             'title' => $this->conversationTitle,
@@ -64,12 +91,49 @@ class ChatBox extends Component
 
         // Add selected users as participants
         foreach ($this->selectedUsers as $userId) {
-            $conversation->participants()->attach($userId);
+            if ($userId != auth()->id()) {
+                $conversation->participants()->attach($userId);
+            }
         }
 
         $this->showNewConversationModal = false;
         $this->selectedConversationId = $conversation->id;
+        $this->dispatch('conversationSelected', conversationId: $conversation->id);
         $this->dispatch('refreshConversations');
+    }
+
+    public function deleteConversation($conversationId)
+    {
+        $conversation = Conversation::findOrFail($conversationId);
+        
+        // Check if user is a participant
+        if (!$conversation->participants->contains(auth()->id())) {
+            abort(403);
+        }
+
+        $conversation->delete();
+        
+        $this->selectedConversationId = null;
+        $this->dispatch('refreshConversations');
+        
+        session()->flash('success', 'Conversation deleted successfully');
+    }
+
+    public function clearConversation($conversationId)
+    {
+        $conversation = Conversation::findOrFail($conversationId);
+        
+        // Check if user is a participant
+        if (!$conversation->participants->contains(auth()->id())) {
+            abort(403);
+        }
+
+        // Delete all messages
+        $conversation->messages()->delete();
+        
+        $this->dispatch('refreshConversations');
+        
+        session()->flash('success', 'Chat history cleared successfully');
     }
 
     public function getAvailableUsersProperty()

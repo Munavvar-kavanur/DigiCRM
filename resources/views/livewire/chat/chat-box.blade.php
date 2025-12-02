@@ -83,7 +83,7 @@
                             {{-- Project Selection --}}
                             @if($newConversationType === 'project')
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project *</label>
                                     <select wire:model="selectedProjectId"
                                             class="w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                                         <option value="">Select Project</option>
@@ -91,6 +91,7 @@
                                             <option value="{{ $project->id }}">{{ $project->title }}</option>
                                         @endforeach
                                     </select>
+                                    @error('selectedProjectId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                                 </div>
                             @endif
 

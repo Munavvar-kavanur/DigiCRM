@@ -6,15 +6,20 @@ use App\Models\Conversation;
 use App\Models\Message;
 use Livewire\Component;
 use Livewire\Attributes\On;
+use Livewire\WithFileUploads;
 
 class MessageThread extends Component
 {
+    use WithFileUploads;
+
     public $conversationId;
     public $newMessage = '';
     public $conversation;
+    public $attachments = [];
 
     protected $rules = [
-        'newMessage' => 'required|string|max:5000',
+        'newMessage' => 'nullable|string|max:5000',
+        'attachments.*' => 'nullable|file|max:10240', // 10MB max
     ];
 
     public function mount($conversationId = null)
@@ -28,7 +33,7 @@ class MessageThread extends Component
     public function loadConversation($conversationId)
     {
         $this->conversationId = $conversationId;
-        $this->conversation = Conversation::with(['messages.user', 'participants'])
+        $this->conversation = Conversation::with(['messages.user', 'participants', 'project'])
             ->findOrFail($conversationId);
         
         // Mark as read
@@ -40,22 +45,49 @@ class MessageThread extends Component
 
     public function sendMessage()
     {
+        // Validate that either message or attachments are present
+        if (empty(trim($this->newMessage)) && empty($this->attachments)) {
+            return;
+        }
+
         $this->validate();
 
         if (!$this->conversationId) {
             return;
         }
 
+        $attachmentPaths = [];
+        
+        // Handle file uploads
+        if (!empty($this->attachments)) {
+            foreach ($this->attachments as $attachment) {
+                $path = $attachment->store('chat-attachments', 'public');
+                $attachmentPaths[] = [
+                    'name' => $attachment->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $attachment->getSize(),
+                    'type' => $attachment->getMimeType(),
+                ];
+            }
+        }
+
         Message::create([
             'conversation_id' => $this->conversationId,
             'user_id' => auth()->id(),
-            'message' => trim($this->newMessage),
+            'message' => trim($this->newMessage) ?: null,
+            'attachments' => !empty($attachmentPaths) ? $attachmentPaths : null,
         ]);
 
-        $this->newMessage = '';
+        $this->reset(['newMessage', 'attachments']);
         $this->conversation->refresh();
         $this->dispatch('messageSent');
         $this->dispatch('refreshConversations');
+    }
+
+    public function removeAttachment($index)
+    {
+        unset($this->attachments[$index]);
+        $this->attachments = array_values($this->attachments);
     }
 
     public function getMessagesProperty()
