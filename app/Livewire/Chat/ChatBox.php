@@ -141,7 +141,10 @@ class ChatBox extends Component
         $query = User::where('id', '!=', auth()->id());
         
         if (!auth()->user()->isSuperAdmin()) {
-            $query->where('branch_id', auth()->user()->branch_id);
+            $query->where(function($q) {
+                $q->where('branch_id', auth()->user()->branch_id)
+                  ->orWhere('role', 'super_admin');
+            });
         }
         
         return $query->orderBy('name')->get();
