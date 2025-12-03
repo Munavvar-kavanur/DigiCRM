@@ -11,7 +11,7 @@
             <!-- Welcome Section -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <h3 class="text-lg font-medium">Welcome back, {{ $client->name }}!</h3>
+                    <h3 class="text-lg font-medium">Welcome back, {{ auth()->user()->name }}!</h3>
                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                         Here is an overview of your account. You can manage your projects, invoices, and communicate with us directly from here.
                     </p>

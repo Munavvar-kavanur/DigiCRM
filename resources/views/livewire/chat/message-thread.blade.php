@@ -24,7 +24,7 @@
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             @if($conversation->type === 'direct')
                                 {{ $otherUser->name ?? 'Unknown User' }}
-                                @if(isset($otherUser) && $otherUser->client)
+                                @if(isset($otherUser) && $otherUser->client && !auth()->user()->client)
                                     <span class="text-xs font-normal text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800">
                                         {{ $otherUser->client->company_name }}
                                     </span>
