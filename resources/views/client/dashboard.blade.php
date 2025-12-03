@@ -90,6 +90,11 @@
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                             Payments
                         </button>
+                        <button @click="activeTab = 'team'" 
+                            :class="{ 'border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'team', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300': activeTab !== 'team' }"
+                            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                            Team
+                        </button>
                     </nav>
                 </div>
 
@@ -271,6 +276,11 @@
                                 </table>
                             </div>
                         @endif
+                    </div>
+
+                    <!-- Team Tab -->
+                    <div x-show="activeTab === 'team'" style="display: none;">
+                        <livewire:client.team-manager />
                     </div>
                 </div>
             </div>

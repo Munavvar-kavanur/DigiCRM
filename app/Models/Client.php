@@ -24,9 +24,14 @@ class Client extends Model
         'website',
     ];
 
-    public function user()
+    public function users()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(User::class);
+    }
+
+    public function primaryUser()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function projects()

@@ -81,6 +81,10 @@ class ClientForm extends Component
                 }
                 
                 $this->client->user->update($userData);
+                // Ensure client_id is set
+                if ($this->client->user->client_id !== $this->client->id) {
+                    $this->client->user->update(['client_id' => $this->client->id]);
+                }
             } else {
                 // Create User for existing Client if missing
                 $password = !empty($this->password) ? $this->password : 'password';
@@ -91,11 +95,15 @@ class ClientForm extends Component
                         'name' => $this->name,
                         'password' => \Illuminate\Support\Facades\Hash::make($password),
                         'role' => 'client',
+                        'client_id' => $this->client->id,
                     ]
                 );
                  // Ensure the user has the client role
                 if ($user->role !== 'client' && $user->role !== 'super_admin' && $user->role !== 'branch_admin') {
                      $user->update(['role' => 'client']);
+                }
+                if ($user->client_id !== $this->client->id) {
+                    $user->update(['client_id' => $this->client->id]);
                 }
                 
                 $this->client->update(['user_id' => $user->id]);
@@ -105,6 +113,10 @@ class ClientForm extends Component
         } else {
             // Create User for the Client
             $password = !empty($this->password) ? $this->password : 'password';
+            
+            // We need to create the client first to get the ID, but we need the user ID for the client...
+            // Actually, we can create the user first, but we don't have client ID yet.
+            // So: Create User -> Create Client -> Update User with Client ID.
             
             $user = \App\Models\User::firstOrCreate(
                 ['email' => $this->email],
@@ -121,7 +133,11 @@ class ClientForm extends Component
             }
 
             $validated['user_id'] = $user->id;
-            Client::create($validated);
+            $client = Client::create($validated);
+            
+            // Now update user with client_id
+            $user->update(['client_id' => $client->id]);
+            
             session()->flash('status', 'Client created successfully. Default password is "' . $password . '".');
         }
 
