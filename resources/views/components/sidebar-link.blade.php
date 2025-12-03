@@ -6,7 +6,7 @@ $classes = ($active ?? false)
             : 'flex items-center px-4 py-3 text-sm font-medium rounded-xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group hover:scale-[1.02] hover:shadow-sm';
 @endphp
 
-<a {{ $attributes->merge(['class' => $classes]) }} :class="sidebarCollapsed ? 'justify-center px-2' : 'px-4 gap-3'">
+<a {{ $attributes->merge(['class' => $classes]) }} wire:navigate :class="sidebarCollapsed ? 'justify-center px-2' : 'px-4 gap-3'">
     @if($active ?? false)
         <div class="absolute inset-y-0 left-0 w-1 bg-indigo-600 rounded-r-full" x-show="!sidebarCollapsed"></div>
     @endif
