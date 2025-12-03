@@ -51,10 +51,16 @@
                         $collapsedDarkLogo = $collapsedDarkLogo ?: $darkLogo;
 
                         // Verify files exist, otherwise reset to null to show default component
-                        if ($lightLogo && !$fileExists($lightLogo)) $lightLogo = null;
-                        if ($darkLogo && !$fileExists($darkLogo)) $darkLogo = null;
                         if ($collapsedLightLogo && !$fileExists($collapsedLightLogo)) $collapsedLightLogo = null;
                         if ($collapsedDarkLogo && !$fileExists($collapsedDarkLogo)) $collapsedDarkLogo = null;
+
+                        // Calculate Unread Chat Count
+                        $unreadChatCount = auth()->user()->conversations()
+                            ->where(function($q) {
+                                $q->whereColumn('conversations.last_message_at', '>', 'conversation_participants.last_read_at')
+                                  ->orWhereNull('conversation_participants.last_read_at');
+                            })
+                            ->count();
                     @endphp
 
                     <!-- Light Mode Logo -->
@@ -130,6 +136,17 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                     </x-slot>
                     {{ __('Dashboard') }}
+                </x-sidebar-link>
+                <x-sidebar-link :href="route('chat.index')" :active="request()->routeIs('chat.*')" @click="sidebarOpen = false">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    </x-slot>
+                    <div class="flex justify-between items-center w-full">
+                        <span>{{ __('Chat') }}</span>
+                        @if($unreadChatCount > 0)
+                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $unreadChatCount }}</span>
+                        @endif
+                    </div>
                 </x-sidebar-link>
                 <x-sidebar-link :href="route('clients.index')" :active="request()->routeIs('clients.*')" @click="sidebarOpen = false">
                     <x-slot name="icon">
@@ -214,15 +231,20 @@
                     </x-slot>
                     {{ __('Dashboard') }}
                 </x-sidebar-link>
+                <x-sidebar-link :href="route('chat.index')" :active="request()->routeIs('chat.*')" @click="sidebarOpen = false">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    </x-slot>
+                    <div class="flex justify-between items-center w-full">
+                        <span>{{ __('Chat') }}</span>
+                        @if($unreadChatCount > 0)
+                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $unreadChatCount }}</span>
+                        @endif
+                    </div>
+                </x-sidebar-link>
             @endif
 
-            {{-- Chat is available for everyone --}}
-            <x-sidebar-link :href="route('chat.index')" :active="request()->routeIs('chat.*')" @click="sidebarOpen = false">
-                <x-slot name="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                </x-slot>
-                {{ __('Chat') }}
-            </x-sidebar-link>
+
         </div>
     </div>
 
