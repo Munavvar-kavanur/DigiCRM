@@ -137,17 +137,7 @@
                     </x-slot>
                     {{ __('Dashboard') }}
                 </x-sidebar-link>
-                <x-sidebar-link :href="route('chat.index')" :active="request()->routeIs('chat.*')" @click="sidebarOpen = false">
-                    <x-slot name="icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    </x-slot>
-                    <div class="flex justify-between items-center w-full">
-                        <span>{{ __('Chat') }}</span>
-                        @if($unreadChatCount > 0)
-                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $unreadChatCount }}</span>
-                        @endif
-                    </div>
-                </x-sidebar-link>
+
                 <x-sidebar-link :href="route('clients.index')" :active="request()->routeIs('clients.*')" @click="sidebarOpen = false">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -177,6 +167,17 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </x-slot>
                     {{ __('Expenses') }}
+                </x-sidebar-link>
+                <x-sidebar-link :href="route('chat.index')" :active="request()->routeIs('chat.*')" @click="sidebarOpen = false">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    </x-slot>
+                    <div class="flex justify-between items-center w-full">
+                        <span>{{ __('Chat') }}</span>
+                        @if($unreadChatCount > 0)
+                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $unreadChatCount }}</span>
+                        @endif
+                    </div>
                 </x-sidebar-link>
                 <x-sidebar-link :href="route('payrolls.index')" :active="request()->routeIs('payrolls.*')" @click="sidebarOpen = false">
                     <x-slot name="icon">
