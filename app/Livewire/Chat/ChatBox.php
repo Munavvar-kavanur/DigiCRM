@@ -141,10 +141,37 @@ class ChatBox extends Component
         $query = User::where('id', '!=', auth()->id());
         
         if (!auth()->user()->isSuperAdmin()) {
-            $query->where(function($q) {
-                $q->where('branch_id', auth()->user()->branch_id)
-                  ->orWhere('role', 'super_admin');
-            });
+            if (auth()->user()->role === 'client') {
+                // If user is a client team member, they should see:
+                // 1. Super Admin
+                // 2. Branch Admin (of their branch)
+                // 3. Primary Client User (if they are a sub-user)
+                // 4. Other team members of the same client
+                
+                $clientId = auth()->user()->client_id;
+                $branchId = auth()->user()->branch_id;
+                
+                $query->where(function($q) use ($clientId, $branchId) {
+                    // Super Admin
+                    $q->where('role', 'super_admin')
+                      // Branch Admin
+                      ->orWhere(function($subQ) use ($branchId) {
+                          $subQ->where('role', 'branch_admin')
+                               ->where('branch_id', $branchId);
+                      });
+                      
+                    if ($clientId) {
+                        // Other members of the same client (including primary user)
+                        $q->orWhere('client_id', $clientId);
+                    }
+                });
+            } else {
+                // Regular employee/admin logic
+                $query->where(function($q) {
+                    $q->where('branch_id', auth()->user()->branch_id)
+                      ->orWhere('role', 'super_admin');
+                });
+            }
         }
         
         return $query->orderBy('name')->get();
