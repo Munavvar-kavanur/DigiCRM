@@ -80,18 +80,13 @@
 
             {{-- Dashboard Preview Mockup --}}
             <div class="mt-20 relative rounded-2xl border border-gray-200 bg-gray-50/50 p-2 md:p-4 shadow-2xl animate-fade-in-up animation-delay-500">
-                <div class="rounded-xl overflow-hidden bg-white border border-gray-200 shadow-sm aspect-[16/9] relative group">
-                    {{-- Placeholder for Dashboard Image --}}
-                    <div class="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-                        <div class="text-center">
-                            <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                            </svg>
-                            <p class="text-gray-400 font-medium">Dashboard Preview</p>
-                        </div>
-                    </div>
+                <div class="rounded-xl overflow-hidden bg-white border border-gray-200 shadow-sm relative group">
+                    {{-- Dashboard Image --}}
+                    <img src="{{ asset('images/DigiCRM-dashboard-preview.webp') }}" 
+                         alt="DigiCRM Dashboard Preview" 
+                         class="w-full h-auto object-cover">
                     {{-- Overlay Gradient --}}
-                    <div class="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent pointer-events-none"></div>
                 </div>
             </div>
         </div>
