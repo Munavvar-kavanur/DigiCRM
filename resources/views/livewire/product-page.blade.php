@@ -245,6 +245,24 @@
                     <h4 class="text-xl font-bold text-gray-900 mb-3">RESTful API</h4>
                     <p class="text-gray-600 leading-relaxed">Complete REST API for mobile app development. Build iOS and Android apps with ease.</p>
                 </div>
+
+                {{-- Feature 17: PDF Preview --}}
+                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-500/5 transition-all group">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">In-Browser PDF Preview</h4>
+                    <p class="text-gray-600 leading-relaxed">Preview invoices, estimates, and payroll PDFs directly in the browser before downloading or sending.</p>
+                </div>
+
+                {{-- Feature 18: Global Search --}}
+                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-500/5 transition-all group">
+                    <div class="w-12 h-12 rounded-2xl bg-fuchsia-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Global Search</h4>
+                    <p class="text-gray-600 leading-relaxed">Quickly find clients, projects, invoices, or any data across the entire system with powerful search.</p>
+                </div>
             </div>
         </div>
     </div>
