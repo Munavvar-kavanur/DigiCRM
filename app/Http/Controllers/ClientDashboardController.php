@@ -10,7 +10,13 @@ class ClientDashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $client = $user->client;
+        // Use the client relationship which now relies on client_id
+        $client = $user->client; 
+        
+        // Fallback: if user->client is null (maybe relationship issue), try finding client where user_id matches
+        if (!$client) {
+             $client = \App\Models\Client::where('user_id', $user->id)->first();
+        }
 
         if (!$client) {
             abort(403, 'User is not associated with a client account.');

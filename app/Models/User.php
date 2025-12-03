@@ -31,6 +31,7 @@ class User extends Authenticatable
         'is_employee',
         'branch_id',
         'role',
+        'client_id',
     ];
 
     /**
