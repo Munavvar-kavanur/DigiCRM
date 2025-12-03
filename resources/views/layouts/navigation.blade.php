@@ -216,7 +216,7 @@
                 </x-sidebar-link>
             @else
                 {{-- Client Links --}}
-                <x-sidebar-link :href="route('client.dashboard')" :active="request()->routeIs('client.dashboard')" @click="sidebarOpen = false">
+                <x-sidebar-link :href="route('client.dashboard')" :active="request()->routeIs('client.dashboard') && !request()->has('tab')" @click="sidebarOpen = false">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                     </x-slot>
@@ -230,6 +230,30 @@
                         <span>{{ __('Chat') }}</span>
                         <livewire:layout.navigation.chat-badge />
                     </div>
+                </x-sidebar-link>
+                <x-sidebar-link :href="route('client.dashboard', ['tab' => 'projects'])" :active="request()->query('tab') === 'projects'" @click="sidebarOpen = false">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                    </x-slot>
+                    {{ __('Projects') }}
+                </x-sidebar-link>
+                <x-sidebar-link :href="route('client.dashboard', ['tab' => 'invoices'])" :active="request()->query('tab') === 'invoices'" @click="sidebarOpen = false">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </x-slot>
+                    {{ __('Invoices') }}
+                </x-sidebar-link>
+                <x-sidebar-link :href="route('client.dashboard', ['tab' => 'estimates'])" :active="request()->query('tab') === 'estimates'" @click="sidebarOpen = false">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    </x-slot>
+                    {{ __('Estimates') }}
+                </x-sidebar-link>
+                <x-sidebar-link :href="route('client.dashboard', ['tab' => 'payments'])" :active="request()->query('tab') === 'payments'" @click="sidebarOpen = false">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    </x-slot>
+                    {{ __('Payments') }}
                 </x-sidebar-link>
             @endif
 

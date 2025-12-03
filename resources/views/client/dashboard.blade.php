@@ -67,7 +67,7 @@
             </div>
 
             <!-- Content Tabs -->
-            <div x-data="{ activeTab: 'projects' }" class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div x-data="{ activeTab: new URLSearchParams(window.location.search).get('tab') || 'projects' }" class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="border-b border-gray-200 dark:border-gray-700">
                     <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
                         <button @click="activeTab = 'projects'" 
