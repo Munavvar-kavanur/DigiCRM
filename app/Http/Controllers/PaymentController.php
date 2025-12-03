@@ -37,10 +37,22 @@ class PaymentController extends Controller
     {
         $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
 
-        // Ensure we're using the correct currency. Defaulting to INR if not set.
-        // In a real app, you might want to handle currency conversion if the invoice is not in INR
-        // but Razorpay account is INR, or ensure Razorpay supports the invoice currency.
-        $currency = 'INR'; 
+        // Get currency from invoice branch settings
+        $currencySymbol = $invoice->branch ? $invoice->branch->currency : '$';
+        
+        // Map symbol to ISO code
+        $currencyMap = [
+            '$' => 'USD',
+            '₹' => 'INR',
+            'INR' => 'INR',
+            'AED' => 'AED',
+            '€' => 'EUR',
+            '£' => 'GBP',
+            'SAR' => 'SAR',
+        ];
+
+        // Default to USD if not found, or use the symbol itself if it looks like a code (3 letters)
+        $currency = $currencyMap[$currencySymbol] ?? (strlen($currencySymbol) === 3 ? strtoupper($currencySymbol) : 'USD');
 
         $orderData = [
             'receipt'         => (string) $invoice->id,
