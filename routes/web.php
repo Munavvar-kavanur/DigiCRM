@@ -43,6 +43,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('estimates', \App\Http\Controllers\EstimateController::class);
     Route::get('estimates/{estimate}/pdf', [\App\Http\Controllers\EstimateController::class, 'downloadPdf'])->name('estimates.pdf');
     Route::post('invoices/{invoice}/payments', [\App\Http\Controllers\PaymentController::class, 'store'])->name('invoices.payments.store');
+    Route::post('invoices/{invoice}/razorpay/order', [\App\Http\Controllers\PaymentController::class, 'createRazorpayOrder'])->name('invoices.razorpay.order');
+    Route::post('invoices/{invoice}/razorpay/verify', [\App\Http\Controllers\PaymentController::class, 'verifyRazorpayPayment'])->name('invoices.razorpay.verify');
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [\App\Http\Controllers\ReportController::class, 'export'])->name('reports.export');
     Route::get('/global-search', [\App\Http\Controllers\GlobalSearchController::class, 'search'])->name('global.search');

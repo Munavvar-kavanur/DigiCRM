@@ -176,7 +176,7 @@
                                                     </a>
 
                                                     @if($invoice->status !== 'paid')
-                                                        <button class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                        <button onclick="payNow({{ $invoice->id }})" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                                             Pay Now
                                                         </button>
                                                     @endif
@@ -309,4 +309,63 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        function payNow(invoiceId) {
+            fetch(`/invoices/${invoiceId}/razorpay/order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                var options = {
+                    "key": data.key,
+                    "amount": data.amount,
+                    "currency": data.currency,
+                    "name": data.name,
+                    "description": data.description,
+                    "order_id": data.order_id, 
+                    "handler": function (response){
+                        // Verify Payment
+                        fetch(`/invoices/${invoiceId}/razorpay/verify`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if(data.success) {
+                                Swal.fire('Success', data.message, 'success').then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', data.message, 'error');
+                            }
+                        });
+                    },
+                    "prefill": data.prefill,
+                    "theme": data.theme
+                };
+                var rzp1 = new Razorpay(options);
+                rzp1.on('payment.failed', function (response){
+                    Swal.fire('Error', response.error.description, 'error');
+                });
+                rzp1.open();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Something went wrong!', 'error');
+            });
+        }
+    </script>
 </x-app-layout>
