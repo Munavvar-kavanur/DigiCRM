@@ -87,6 +87,9 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('reminders', \App\Http\Controllers\ReminderController::class);
     Route::patch('reminders/{reminder}/complete', [\App\Http\Controllers\ReminderController::class, 'markAsComplete'])->name('reminders.complete');
+
+    // Client Portal Routes
+    Route::get('/portal', [\App\Http\Controllers\ClientDashboardController::class, 'index'])->name('client.dashboard');
 });
 
 require __DIR__.'/auth.php';

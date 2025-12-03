@@ -66,10 +66,51 @@ class ClientForm extends Component
 
         if ($this->client && $this->client->exists) {
             $this->client->update($validated);
+            
+            // Update associated user email if it exists
+            if ($this->client->user) {
+                $this->client->user->update([
+                    'name' => $this->name,
+                    'email' => $this->email,
+                ]);
+            } else {
+                // Create User for existing Client if missing
+                $user = \App\Models\User::firstOrCreate(
+                    ['email' => $this->email],
+                    [
+                        'name' => $this->name,
+                        'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                        'role' => 'client',
+                    ]
+                );
+                 // Ensure the user has the client role
+                if ($user->role !== 'client' && $user->role !== 'super_admin' && $user->role !== 'branch_admin') {
+                     $user->update(['role' => 'client']);
+                }
+                
+                $this->client->update(['user_id' => $user->id]);
+            }
+
             session()->flash('status', 'Client updated successfully.');
         } else {
+            // Create User for the Client
+            $user = \App\Models\User::firstOrCreate(
+                ['email' => $this->email],
+                [
+                    'name' => $this->name,
+                    'password' => \Illuminate\Support\Facades\Hash::make('password'), // Default password
+                    'role' => 'client',
+                ]
+            );
+
+            // Ensure the user has the client role if they existed but didn't have it (optional, but good for safety)
+            if ($user->role !== 'client' && $user->role !== 'super_admin' && $user->role !== 'branch_admin') {
+                 $user->update(['role' => 'client']);
+            }
+
+            $validated['user_id'] = $user->id;
             Client::create($validated);
-            session()->flash('status', 'Client created successfully.');
+            session()->flash('status', 'Client created successfully. Default password is "password".');
         }
 
         return $this->redirect(route('clients.index'), true);

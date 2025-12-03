@@ -18,10 +18,16 @@ class Client extends Model
         'company_name',
         'status',
         'branch_id',
+        'user_id',
         'tax_id',
         'notes',
         'website',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function projects()
     {
