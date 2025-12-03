@@ -96,13 +96,26 @@
             <!-- Mobile Sidebar Overlay -->
             <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-900/80 z-40 md:hidden"></div>
 
+            <!-- Sidebar Styles -->
+            <style>
+                @media (max-width: 767px) {
+                    #sidebar {
+                        transform: translateX(-120%);
+                    }
+                    #sidebar.mobile-open {
+                        transform: translateX(0) !important;
+                    }
+                }
+            </style>
+
             <!-- Sidebar -->
-            <aside :class="[
-                    sidebarCollapsed ? 'md:w-20' : 'md:w-72',
-                    isLoaded ? 'transition-all duration-300 ease-in-out' : ''
-                ]" 
-                class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 h-full flex-shrink-0 fixed inset-y-3 left-3 z-50 md:relative md:inset-auto md:left-auto transform" 
-                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-[110%] md:translate-x-0'"
+            <aside :class="{
+                    'md:w-20': sidebarCollapsed,
+                    'md:w-72': !sidebarCollapsed,
+                    'mobile-open': sidebarOpen,
+                    'transition-all duration-300 ease-in-out': isLoaded
+                }" 
+                class="w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 h-full flex-shrink-0 fixed inset-y-3 left-3 z-50 md:relative md:inset-auto md:left-auto md:translate-x-0 transform" 
                 id="sidebar">
                 @include('layouts.navigation')
             </aside>
