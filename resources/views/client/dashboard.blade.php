@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6" x-data="{ activeTab: new URLSearchParams(window.location.search).get('tab') || 'projects', pdfPreviewModal: false, pdfPreviewUrl: '' }">
             
             <!-- Welcome Section -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
@@ -67,7 +67,7 @@
             </div>
 
             <!-- Content Tabs -->
-            <div x-data="{ activeTab: new URLSearchParams(window.location.search).get('tab') || 'projects' }" class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="border-b border-gray-200 dark:border-gray-700">
                     <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
                         <button @click="activeTab = 'projects'" 
@@ -165,7 +165,7 @@
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <a href="{{ route('invoices.pdf', $invoice) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">Download</a>
+                                                    <button @click="pdfPreviewModal = true; pdfPreviewUrl = '{{ route('invoices.preview', $invoice) }}'" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">Preview</button>
                                                     @if($invoice->status !== 'paid')
                                                         <button class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">Pay Now</button>
                                                     @endif
@@ -260,6 +260,39 @@
                                 </table>
                             </div>
                         @endif
+                    </div>
+                </div>
+            </div>
+            <!-- PDF Preview Modal -->
+            <div x-show="pdfPreviewModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                    <div x-show="pdfPreviewModal" @click="pdfPreviewModal = false" class="fixed inset-0 transition-opacity" aria-hidden="true">
+                        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                    </div>
+
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                    <div x-show="pdfPreviewModal" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
+                        <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <div class="sm:flex sm:items-start">
+                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
+                                        Invoice Preview
+                                    </h3>
+                                    <div class="mt-4 h-[70vh] bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden">
+                                        <iframe :src="pdfPreviewUrl" class="w-full h-full border-0"></iframe>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <a :href="pdfPreviewUrl && pdfPreviewUrl.replace('/preview', '/pdf')" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                Download PDF
+                            </a>
+                            <button type="button" @click="pdfPreviewModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

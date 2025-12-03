@@ -438,4 +438,12 @@ class InvoiceController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.pdf', compact('invoice', 'settings'));
         return $pdf->download('invoice-' . $invoice->invoice_number . '.pdf');
     }
+
+    public function previewPdf(Invoice $invoice)
+    {
+        $invoice->load(['client', 'project', 'items']);
+        $settings = \App\Models\Setting::getAll($invoice->branch_id);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.pdf', compact('invoice', 'settings'));
+        return $pdf->stream('invoice-' . $invoice->invoice_number . '.pdf');
+    }
 }

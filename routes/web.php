@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('projects', \App\Http\Controllers\ProjectController::class);
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
     Route::get('invoices/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
+    Route::get('invoices/{invoice}/preview', [\App\Http\Controllers\InvoiceController::class, 'previewPdf'])->name('invoices.preview');
     Route::resource('estimates', \App\Http\Controllers\EstimateController::class);
     Route::get('estimates/{estimate}/pdf', [\App\Http\Controllers\EstimateController::class, 'downloadPdf'])->name('estimates.pdf');
     Route::post('invoices/{invoice}/payments', [\App\Http\Controllers\PaymentController::class, 'store'])->name('invoices.payments.store');
