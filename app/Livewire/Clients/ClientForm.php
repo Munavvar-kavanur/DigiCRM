@@ -18,6 +18,7 @@ class ClientForm extends Component
     public $status = 'active';
     public $address = '';
     public $notes = '';
+    public $password = '';
 
     public $branch_id = null;
 
@@ -52,6 +53,7 @@ class ClientForm extends Component
             'address' => 'nullable|string',
             'notes' => 'nullable|string',
             'branch_id' => 'nullable|exists:branches,id',
+            'password' => 'nullable|string|min:8',
         ];
     }
 
@@ -69,17 +71,25 @@ class ClientForm extends Component
             
             // Update associated user email if it exists
             if ($this->client->user) {
-                $this->client->user->update([
+                $userData = [
                     'name' => $this->name,
                     'email' => $this->email,
-                ]);
+                ];
+                
+                if (!empty($this->password)) {
+                    $userData['password'] = \Illuminate\Support\Facades\Hash::make($this->password);
+                }
+                
+                $this->client->user->update($userData);
             } else {
                 // Create User for existing Client if missing
+                $password = !empty($this->password) ? $this->password : 'password';
+                
                 $user = \App\Models\User::firstOrCreate(
                     ['email' => $this->email],
                     [
                         'name' => $this->name,
-                        'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                        'password' => \Illuminate\Support\Facades\Hash::make($password),
                         'role' => 'client',
                     ]
                 );
@@ -94,11 +104,13 @@ class ClientForm extends Component
             session()->flash('status', 'Client updated successfully.');
         } else {
             // Create User for the Client
+            $password = !empty($this->password) ? $this->password : 'password';
+            
             $user = \App\Models\User::firstOrCreate(
                 ['email' => $this->email],
                 [
                     'name' => $this->name,
-                    'password' => \Illuminate\Support\Facades\Hash::make('password'), // Default password
+                    'password' => \Illuminate\Support\Facades\Hash::make($password), // Default password
                     'role' => 'client',
                 ]
             );
@@ -110,7 +122,7 @@ class ClientForm extends Component
 
             $validated['user_id'] = $user->id;
             Client::create($validated);
-            session()->flash('status', 'Client created successfully. Default password is "password".');
+            session()->flash('status', 'Client created successfully. Default password is "' . $password . '".');
         }
 
         return $this->redirect(route('clients.index'), true);
