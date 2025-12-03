@@ -38,7 +38,7 @@ class MessageThread extends Component
     public function loadConversation($conversationId)
     {
         $this->conversationId = $conversationId;
-        $this->conversation = Conversation::with(['messages.user', 'participants', 'project'])
+        $this->conversation = Conversation::with(['messages.user', 'participants.client', 'project'])
             ->findOrFail($conversationId);
         
         // Mark as read
