@@ -53,14 +53,6 @@
                         // Verify files exist, otherwise reset to null to show default component
                         if ($collapsedLightLogo && !$fileExists($collapsedLightLogo)) $collapsedLightLogo = null;
                         if ($collapsedDarkLogo && !$fileExists($collapsedDarkLogo)) $collapsedDarkLogo = null;
-
-                        // Calculate Unread Chat Count
-                        $unreadChatCount = auth()->user()->conversations()
-                            ->where(function($q) {
-                                $q->whereColumn('conversations.last_message_at', '>', 'conversation_participants.last_read_at')
-                                  ->orWhereNull('conversation_participants.last_read_at');
-                            })
-                            ->count();
                     @endphp
 
                     <!-- Light Mode Logo -->
@@ -174,9 +166,7 @@
                     </x-slot>
                     <div class="flex justify-between items-center w-full">
                         <span>{{ __('Chat') }}</span>
-                        @if($unreadChatCount > 0)
-                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-3">{{ $unreadChatCount }}</span>
-                        @endif
+                        <livewire:layout.navigation.chat-badge />
                     </div>
                 </x-sidebar-link>
                 <x-sidebar-link :href="route('payrolls.index')" :active="request()->routeIs('payrolls.*')" @click="sidebarOpen = false">
@@ -238,9 +228,7 @@
                     </x-slot>
                     <div class="flex justify-between items-center w-full">
                         <span>{{ __('Chat') }}</span>
-                        @if($unreadChatCount > 0)
-                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-3">{{ $unreadChatCount }}</span>
-                        @endif
+                        <livewire:layout.navigation.chat-badge />
                     </div>
                 </x-sidebar-link>
             @endif

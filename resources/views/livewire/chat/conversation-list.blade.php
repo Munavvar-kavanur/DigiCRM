@@ -1,4 +1,4 @@
-<div class="flex flex-col flex-1 overflow-hidden">
+<div class="flex flex-col flex-1 overflow-hidden" wire:poll.10s="refreshConversations">
     {{-- Search and Filter --}}
     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
         <div class="relative mb-3">
