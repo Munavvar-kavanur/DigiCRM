@@ -164,10 +164,21 @@
                                                         {{ ucfirst($invoice->status) }}
                                                     </span>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button @click="pdfPreviewModal = true; pdfPreviewUrl = '{{ route('invoices.preview', $invoice) }}'" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">Preview</button>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                                    <button @click="pdfPreviewModal = true; pdfPreviewUrl = '{{ route('invoices.preview', $invoice) }}'" 
+                                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                        Preview
+                                                    </button>
+                                                    
+                                                    <a href="{{ route('invoices.pdf', $invoice) }}" 
+                                                       class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-full shadow-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                        Download
+                                                    </a>
+
                                                     @if($invoice->status !== 'paid')
-                                                        <button class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">Pay Now</button>
+                                                        <button class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                            Pay Now
+                                                        </button>
                                                     @endif
                                                 </td>
                                             </tr>
@@ -272,7 +283,7 @@
 
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                    <div x-show="pdfPreviewModal" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
+                    <div x-show="pdfPreviewModal" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
                         <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <div class="sm:flex sm:items-start">
                                 <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
