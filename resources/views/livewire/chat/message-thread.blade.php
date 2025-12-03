@@ -24,10 +24,24 @@
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             @if($conversation->type === 'direct')
                                 {{ $otherUser->name ?? 'Unknown User' }}
-                                @if(isset($otherUser) && $otherUser->client && !auth()->user()->client)
-                                    <span class="text-xs font-normal text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800">
-                                        {{ $otherUser->client->company_name }}
-                                    </span>
+                                @if(isset($otherUser))
+                                    @if($otherUser->role === 'super_admin')
+                                        <span class="text-xs font-normal text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 rounded-full border border-red-100 dark:border-red-800">
+                                            Super Admin
+                                        </span>
+                                    @elseif($otherUser->role === 'branch_admin')
+                                        <span class="text-xs font-normal text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded-full border border-purple-100 dark:border-purple-800">
+                                            Branch Admin
+                                        </span>
+                                    @elseif(auth()->user()->client_id && $otherUser->client_id === auth()->user()->client_id)
+                                        <span class="text-xs font-normal text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-full border border-green-100 dark:border-green-800">
+                                            Teammate
+                                        </span>
+                                    @elseif($otherUser->client && !auth()->user()->client)
+                                        <span class="text-xs font-normal text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800">
+                                            {{ $otherUser->client->company_name }}
+                                        </span>
+                                    @endif
                                 @endif
                             @else
                                 {{ $conversation->title }}

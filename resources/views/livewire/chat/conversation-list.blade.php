@@ -61,10 +61,24 @@
                                     {{ $conversation->type === 'project' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : '' }}">
                                     {{ ucfirst($conversation->type) }}
                                 </span>
-                            @elseif($conversation->type === 'direct' && isset($otherUser) && $otherUser->client && !auth()->user()->client)
-                                <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
-                                    Client
-                                </span>
+                            @elseif($conversation->type === 'direct' && isset($otherUser))
+                                @if($otherUser->role === 'super_admin')
+                                    <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                                        Super Admin
+                                    </span>
+                                @elseif($otherUser->role === 'branch_admin')
+                                    <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                        Branch Admin
+                                    </span>
+                                @elseif(auth()->user()->client_id && $otherUser->client_id === auth()->user()->client_id)
+                                    <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                                        Teammate
+                                    </span>
+                                @elseif($otherUser->client && !auth()->user()->client)
+                                    <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                                        Client
+                                    </span>
+                                @endif
                             @endif
                         </div>
 
