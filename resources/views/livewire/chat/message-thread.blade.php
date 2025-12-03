@@ -275,8 +275,9 @@
                             </div>
                         </div>
                             
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 {{ $message->user_id === auth()->id() ? 'text-right mr-1' : 'ml-1' }}">
-                                {{ $message->created_at->format('g:i A') }}
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 {{ $message->user_id === auth()->id() ? 'text-right mr-1' : 'ml-1' }}"
+                               x-text="new Date('{{ $message->created_at->toIso8601String() }}').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })"
+                               title="{{ $message->created_at->format('Y-m-d H:i:s') }} (Server Time)">
                             </p>
                         </div>
                     </div>
