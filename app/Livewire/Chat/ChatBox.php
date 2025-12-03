@@ -14,24 +14,32 @@ class ChatBox extends Component
     public $selectedUsers = [];
     public $conversationTitle = '';
     public $selectedProjectId = null;
+    public $isAutoSelected = false;
 
     protected $listeners = [
         'conversationSelected' => 'selectConversation',
         'refreshConversations' => '$refresh',
     ];
 
-    public function mount()
+    public function mount($selectedConversationId = null)
     {
-        // Auto-select first conversation if exists
-        $firstConversation = auth()->user()->conversations()->first();
-        if ($firstConversation) {
-            $this->selectedConversationId = $firstConversation->id;
+        if ($selectedConversationId) {
+            $this->selectedConversationId = $selectedConversationId;
+            $this->isAutoSelected = false;
+        } else {
+            // Auto-select first conversation if exists
+            $firstConversation = auth()->user()->conversations()->first();
+            if ($firstConversation) {
+                $this->selectedConversationId = $firstConversation->id;
+                $this->isAutoSelected = true;
+            }
         }
     }
 
     public function selectConversation($conversationId)
     {
         $this->selectedConversationId = $conversationId;
+        $this->dispatch('show-thread');
     }
 
     public function openNewConversationModal()
@@ -100,6 +108,7 @@ class ChatBox extends Component
         $this->selectedConversationId = $conversation->id;
         $this->dispatch('conversationSelected', conversationId: $conversation->id);
         $this->dispatch('refreshConversations');
+        $this->dispatch('show-thread');
     }
 
     public function deleteConversation($conversationId)

@@ -1,6 +1,19 @@
-<div class="flex h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+<div class="flex h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden"
+     x-data="{ 
+         mobileShowList: {{ $isAutoSelected || !$selectedConversationId ? 'true' : 'false' }},
+         isMobile: window.innerWidth < 768
+     }"
+     x-init="
+         window.addEventListener('resize', () => isMobile = window.innerWidth < 768);
+         $watch('mobileShowList', value => {
+             if (!isMobile) return;
+         })
+     "
+     @show-thread.window="mobileShowList = false"
+     @show-conversation-list.window="mobileShowList = true">
     {{-- Conversation List Sidebar --}}
-    <div class="w-full md:w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+    <div class="w-full md:w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col"
+         :class="{ 'hidden': !mobileShowList && isMobile, 'flex': mobileShowList || !isMobile }">
         {{-- Header --}}
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between mb-4">
@@ -19,7 +32,8 @@
     </div>
 
     {{-- Message Thread Area --}}
-    <div class="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div class="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900"
+         :class="{ 'hidden': mobileShowList && isMobile, 'flex': !mobileShowList || !isMobile }">
         @if($selectedConversationId)
             <livewire:chat.message-thread :conversation-id="$selectedConversationId" :key="'message-thread-' . $selectedConversationId" />
         @else

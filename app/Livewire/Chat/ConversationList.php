@@ -28,6 +28,7 @@ class ConversationList extends Component
     {
         $this->selectedConversationId = $conversationId;
         $this->dispatch('conversationSelected', conversationId: $conversationId);
+        $this->dispatch('show-thread');
     }
 
     public function getConversationsProperty()
