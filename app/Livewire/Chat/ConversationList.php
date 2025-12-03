@@ -53,7 +53,7 @@ class ConversationList extends Component
             $query->where('conversations.type', $this->filterType);
         }
 
-        return $query->with(['latestMessage.user', 'participants', 'project'])
+        return $query->with(['latestMessage.user', 'participants.client', 'project'])
             ->orderBy('last_message_at', 'desc')
             ->get()
             ->map(function ($conversation) {
