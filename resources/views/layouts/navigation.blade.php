@@ -175,7 +175,7 @@
                     <div class="flex justify-between items-center w-full">
                         <span>{{ __('Chat') }}</span>
                         @if($unreadChatCount > 0)
-                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $unreadChatCount }}</span>
+                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-3">{{ $unreadChatCount }}</span>
                         @endif
                     </div>
                 </x-sidebar-link>
@@ -239,7 +239,7 @@
                     <div class="flex justify-between items-center w-full">
                         <span>{{ __('Chat') }}</span>
                         @if($unreadChatCount > 0)
-                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $unreadChatCount }}</span>
+                            <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-3">{{ $unreadChatCount }}</span>
                         @endif
                     </div>
                 </x-sidebar-link>
