@@ -105,22 +105,13 @@
         /* Stamp Style */
         .paid-stamp {
             position: absolute;
-            right: 180px;
-            top: 25px;
-            color: #22c55e;
-            /* green-500 */
-            border: 3px solid #22c55e;
-            font-size: 24px;
-            font-weight: bold;
-            text-transform: uppercase;
-            padding: 5px 12px;
-            transform: rotate(-12deg);
-            opacity: 0.9;
-            letter-spacing: 2px;
-            border-radius: 6px;
+            right: 50px;
+            top: 15px;
+            max-width: 120px;
+            max-height: 120px;
+            opacity: 0.85;
+            transform: rotate(-15deg);
             z-index: 10;
-            font-family: 'DejaVu Sans', sans-serif;
-            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .container {
@@ -348,7 +339,7 @@
     <!-- Header -->
     <div class="header-bar">
         @if($invoice->status === 'paid')
-            <div class="paid-stamp">PAID</div>
+            <img src="{{ public_path('images/paid.webp') }}" class="paid-stamp" alt="PAID">
         @endif
 
         <table class="header-table">
@@ -363,7 +354,8 @@
                             alt="Logo">
                     @else
                         <h2 style="font-size: 24px; font-weight: bold; margin: 0;">
-                            {{ $settings['company_name'] ?? 'COMPANY' }}</h2>
+                            {{ $settings['company_name'] ?? 'COMPANY' }}
+                        </h2>
                     @endif
                 </td>
 
@@ -419,13 +411,15 @@
                                     <div class="section-label" style="border: none; margin: 0; padding: 0;">Issue Date
                                     </div>
                                     <div style="font-weight: 500; font-size: 13px;">
-                                        {{ \Carbon\Carbon::parse($invoice->issue_date)->format('M d, Y') }}</div>
+                                        {{ \Carbon\Carbon::parse($invoice->issue_date)->format('M d, Y') }}
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="section-label" style="border: none; margin: 0; padding: 0;">Due Date
                                     </div>
                                     <div style="font-weight: 500; font-size: 13px;">
-                                        {{ \Carbon\Carbon::parse($invoice->due_date)->format('M d, Y') }}</div>
+                                        {{ \Carbon\Carbon::parse($invoice->due_date)->format('M d, Y') }}
+                                    </div>
                                 </td>
                             </tr>
                         </table>
@@ -456,9 +450,11 @@
                         </td>
                         <td class="text-right text-gray-600">{{ $item->quantity }}</td>
                         <td class="text-right text-gray-600">
-                            {{ \App\Models\Setting::formatCurrency($item->unit_price, $settings) }}</td>
+                            {{ \App\Models\Setting::formatCurrency($item->unit_price, $settings) }}
+                        </td>
                         <td class="text-right font-medium text-gray-900">
-                            {{ \App\Models\Setting::formatCurrency($item->total, $settings) }}</td>
+                            {{ \App\Models\Setting::formatCurrency($item->total, $settings) }}
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
@@ -500,7 +496,8 @@
                 <tr class="grand-total-row">
                     <td class="grand-total-label">Grand Total</td>
                     <td class="grand-total-val">
-                        {{ \App\Models\Setting::formatCurrency($invoice->grand_total, $settings) }}</td>
+                        {{ \App\Models\Setting::formatCurrency($invoice->grand_total, $settings) }}
+                    </td>
                 </tr>
 
                 <tr class="balance-row">
