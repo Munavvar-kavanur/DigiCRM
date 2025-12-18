@@ -64,6 +64,12 @@ Set up your database tables:
 php artisan migrate --seed
 ```
 
+If you encounter issues or want to reset the database:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
 ### Default Login Account
 
 - **Email:** test@example.com
