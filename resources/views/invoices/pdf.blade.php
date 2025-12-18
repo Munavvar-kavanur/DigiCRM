@@ -5,6 +5,42 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Invoice #{{ $invoice->invoice_number }}</title>
     <style>
+        /* Custom Font Face Declarations for Outfit */
+        @font-face {
+            font-family: 'Outfit';
+            src: url('{{ public_path('fonts/Outfit-Regular.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Outfit';
+            src: url('{{ public_path('fonts/Outfit-Medium.ttf') }}') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Outfit';
+            src: url('{{ public_path('fonts/Outfit-SemiBold.ttf') }}') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Outfit';
+            src: url('{{ public_path('fonts/Outfit-Bold.ttf') }}') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Outfit';
+            src: url('{{ public_path('fonts/Outfit-Light.ttf') }}') format('truetype');
+            font-weight: 300;
+            font-style: normal;
+        }
+
         @page {
             /* A3 Portrait width is 297mm, same as A4 Landscape width. 
                Height is 420mm, much taller than A4 Landscape (210mm).
@@ -14,8 +50,8 @@
         }
 
         body {
-            /* DejaVu Sans is the most reliable font for DomPDF with UTF-8/Unicode support including ₹ */
-            font-family: 'DejaVu Sans', 'Arial Unicode MS', sans-serif;
+            /* Outfit matches the web view font perfectly, with DejaVu Sans for Unicode (₹) support */
+            font-family: 'Outfit', 'DejaVu Sans', sans-serif;
             color: #1f2937;
             /* gray-800 */
             line-height: 1.5;
