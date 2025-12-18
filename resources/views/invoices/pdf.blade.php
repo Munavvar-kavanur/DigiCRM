@@ -338,10 +338,6 @@
 
     <!-- Header -->
     <div class="header-bar">
-        @if($invoice->status === 'paid')
-            <img src="{{ public_path('images/paid.webp') }}" class="paid-stamp" alt="PAID">
-        @endif
-
         <table class="header-table">
             <tr>
                 <!-- Logo / Company Name -->
@@ -389,7 +385,11 @@
                         </div>
                     </div>
                 </td>
-                <td style="padding-left: 10px;">
+                <td style="padding-left: 10px; position: relative;">
+                    @if($invoice->status === 'paid')
+                        <img src="{{ public_path('images/paid.webp') }}" class="paid-stamp" alt="PAID"
+                            style="position: absolute; right: -30px; top: -10px; max-width: 140px; max-height: 140px; opacity: 0.85; transform: rotate(-15deg); z-index: 10;">
+                    @endif
                     <div class="section-label">Bill To</div>
                     <div class="address-box">
                         <div class="company-name">{{ $invoice->client->name }}</div>
