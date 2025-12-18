@@ -75,29 +75,29 @@ php artisan migrate:fresh --seed
 - **Email:** test@example.com
 - **Password:** password
 
-### 5. Install Frontend Dependencies
+### 5. Link Storage
 
-Install the Node.js dependencies:
+Create the symbolic link for storage:
 
+```bash
+php artisan storage:link
+```
+
+### 6. Install Frontend Dependencies
 ```bash
 npm install
 ```
 
-### 6. Build/Run Frontend
-
-To start the development server with hot module replacement (HMR):
-
+### 7. Build/Run Frontend
 ```bash
 npm run dev
 ```
-
 Or to build for production:
-
 ```bash
 npm run build
 ```
 
-### 7. Serve the Application
+### 8. Serve the Application
 
 If you are not using a tool like Valet or Laragon, you can serve the application using Artisan:
 
@@ -106,6 +106,58 @@ php artisan serve
 ```
 
 The application should now be accessible at `http://localhost:8000`.
+
+## Useful Artisan Commands
+
+Here are some common commands you might need during development and maintenance:
+
+### Clear Caches
+Clear various caches to ensure changes take effect:
+
+```bash
+# Clear compiled view files (useful when blade changes aren't reflecting)
+php artisan view:clear
+
+# Clear application cache
+php artisan cache:clear
+
+# Clear configuration cache
+php artisan config:clear
+
+# Clear route cache
+php artisan route:clear
+
+# Clear all caches at once (optimize:clear)
+php artisan optimize:clear
+```
+
+### Database
+Manage your database state:
+
+```bash
+# Run migrations
+php artisan migrate
+
+# Run migrations and seed database
+php artisan migrate --seed
+
+# Rollback the last migration operation
+php artisan migrate:rollback
+
+# Seed the database
+php artisan db:seed
+```
+
+### Maintenance
+```bash
+# Put the application into maintenance mode
+php artisan down
+
+# Bring the application out of maintenance mode
+php artisan up
+```
+
+
 
 ## License
 
