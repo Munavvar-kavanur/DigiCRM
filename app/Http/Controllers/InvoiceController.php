@@ -30,11 +30,11 @@ class InvoiceController extends Controller
         // Search
         if ($request->has('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('client', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -58,12 +58,12 @@ class InvoiceController extends Controller
         }
 
         $invoices = $query->latest('issue_date')->paginate(10);
-        
+
         // Clients & Branches for filters
         $clientsQuery = Client::orderBy('name');
         $applyBranch($clientsQuery);
         $clients = $clientsQuery->get();
-        
+
         $branches = \App\Models\Branch::orderBy('name')->get();
 
         // Stats Logic with Multi-Currency Support
@@ -79,7 +79,7 @@ class InvoiceController extends Controller
             if ($targetBranchId) {
                 $branch = \App\Models\Branch::find($targetBranchId);
                 $currency = $branch ? $branch->currency : '$';
-                
+
                 $query = Invoice::where('branch_id', $targetBranchId);
                 if ($status === 'paid') {
                     $query->where('status', 'paid');
@@ -99,25 +99,25 @@ class InvoiceController extends Controller
                 } elseif ($status === 'total') {
                     $amount = Invoice::where('branch_id', $targetBranchId)->sum('total_amount');
                 }
-                
+
                 return [['currency' => $currency, 'amount' => $amount]];
             }
 
             // Global View (Super Admin) - Aggregate by currency
             $totals = [];
             $allBranches = \App\Models\Branch::all();
-            
+
             // Initialize totals for each currency found
             $currencyMap = []; // currency_symbol => amount
 
             foreach ($allBranches as $branch) {
                 $currency = $branch->currency;
-                
+
                 $branchQuery = Invoice::where('branch_id', $branch->id);
                 if ($status === 'paid') {
                     $branchQuery->where('status', 'paid');
                 }
-                
+
                 $amount = $branchQuery->sum('total_amount');
 
                 if (!isset($currencyMap[$currency])) {
@@ -131,7 +131,7 @@ class InvoiceController extends Controller
                     $totals[] = ['currency' => $curr, 'amount' => $amt];
                 }
             }
-            
+
             return empty($totals) ? [['currency' => '$', 'amount' => 0]] : $totals;
         };
 
@@ -146,30 +146,32 @@ class InvoiceController extends Controller
 
         $totalAmounts = $getCurrencyTotals('total');
         $receivedAmounts = $getCurrencyTotals('paid');
-        
+
         // Calculate Outstanding (Total - Received) per currency
         $outstandingAmounts = [];
         // Helper to map currency arrays to key-value
-        $mapToKeyVal = function($arr) {
+        $mapToKeyVal = function ($arr) {
             $res = [];
-            foreach($arr as $item) $res[$item['currency']] = $item['amount'];
+            foreach ($arr as $item)
+                $res[$item['currency']] = $item['amount'];
             return $res;
         };
-        
+
         $totalMap = $mapToKeyVal($totalAmounts);
         $receivedMap = $mapToKeyVal($receivedAmounts);
-        
+
         $allCurrencies = array_unique(array_merge(array_keys($totalMap), array_keys($receivedMap)));
-        
+
         foreach ($allCurrencies as $curr) {
             $tot = $totalMap[$curr] ?? 0;
             $rec = $receivedMap[$curr] ?? 0;
             $out = $tot - $rec;
             if ($out > 0) { // Only show if there is outstanding amount
-                 $outstandingAmounts[] = ['currency' => $curr, 'amount' => $out];
+                $outstandingAmounts[] = ['currency' => $curr, 'amount' => $out];
             }
         }
-        if (empty($outstandingAmounts)) $outstandingAmounts[] = ['currency' => '$', 'amount' => 0];
+        if (empty($outstandingAmounts))
+            $outstandingAmounts[] = ['currency' => '$', 'amount' => 0];
 
         // Pass selected branch for view context
         $selectedBranch = null;
@@ -178,9 +180,14 @@ class InvoiceController extends Controller
         }
 
         return view('invoices.index', compact(
-            'invoices', 'clients', 'branches', 
-            'totalInvoices', 'unpaidInvoices', 
-            'totalAmounts', 'receivedAmounts', 'outstandingAmounts',
+            'invoices',
+            'clients',
+            'branches',
+            'totalInvoices',
+            'unpaidInvoices',
+            'totalAmounts',
+            'receivedAmounts',
+            'outstandingAmounts',
             'selectedBranch'
         ));
     }
@@ -188,7 +195,7 @@ class InvoiceController extends Controller
     public function create()
     {
         if (auth()->user()->isSuperAdmin()) {
-            $clients = request()->old('branch_id') 
+            $clients = request()->old('branch_id')
                 ? Client::where('status', 'active')->where('branch_id', request()->old('branch_id'))->get()
                 : collect();
         } else {
@@ -198,7 +205,7 @@ class InvoiceController extends Controller
             ? Project::where('status', '!=', 'completed')->where('client_id', request()->old('client_id'))->get()
             : collect();
         $branches = \App\Models\Branch::all();
-        
+
         $settings = \App\Models\Setting::getAll();
 
         return view('invoices.create', compact('clients', 'projects', 'branches', 'settings'));
@@ -253,9 +260,9 @@ class InvoiceController extends Controller
         if (empty($invoiceNumber)) {
             $branchId = $request->input('branch_id');
             if (!$branchId && !auth()->user()->isSuperAdmin()) {
-                 $branchId = auth()->user()->branch_id;
+                $branchId = auth()->user()->branch_id;
             }
-            
+
             $branchCode = 'GEN'; // Default if no branch
             if ($branchId) {
                 $branch = \App\Models\Branch::find($branchId);
@@ -266,22 +273,22 @@ class InvoiceController extends Controller
 
             // Format: INV-{BRANCH_CODE}-{SEQUENCE}
             $prefix = 'INV-' . $branchCode . '-';
-            
+
             // Find latest invoice for this branch to get sequence
             $latestInvoice = \App\Models\Invoice::where('invoice_number', 'like', $prefix . '%')
                 ->orderBy('id', 'desc')
                 ->first();
-            
+
             $nextSequence = 1;
             if ($latestInvoice) {
                 // Extract sequence
                 $parts = explode('-', $latestInvoice->invoice_number);
                 $lastSeq = end($parts);
                 if (is_numeric($lastSeq)) {
-                    $nextSequence = (int)$lastSeq + 1;
+                    $nextSequence = (int) $lastSeq + 1;
                 }
             }
-            
+
             $invoiceNumber = $prefix . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
         }
 
@@ -381,7 +388,7 @@ class InvoiceController extends Controller
         }
 
         $grand_total = $subtotal + $taxAmount - $discountAmount;
-        
+
         // Recalculate balance due based on existing payments
         $total_paid = $invoice->payments()->sum('amount');
         $balance_due = $grand_total - $total_paid;
@@ -436,6 +443,9 @@ class InvoiceController extends Controller
         $invoice->load(['client', 'project', 'items']);
         $settings = \App\Models\Setting::getAll($invoice->branch_id);
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.pdf', compact('invoice', 'settings'));
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+        $pdf->setOption('defaultFont', 'DejaVu Sans');
         return $pdf->download('invoice-' . $invoice->invoice_number . '.pdf');
     }
 
@@ -444,6 +454,9 @@ class InvoiceController extends Controller
         $invoice->load(['client', 'project', 'items']);
         $settings = \App\Models\Setting::getAll($invoice->branch_id);
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.pdf', compact('invoice', 'settings'));
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+        $pdf->setOption('defaultFont', 'DejaVu Sans');
         return $pdf->stream('invoice-' . $invoice->invoice_number . '.pdf');
     }
 }

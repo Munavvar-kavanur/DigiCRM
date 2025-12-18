@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Invoice #{{ $invoice->invoice_number }}</title>
     <style>
         @page {
@@ -14,8 +14,8 @@
         }
 
         body {
-            /* Dejavu Sans is required for UTF-8 characters like Rupee symbol in DomPDF */
-            font-family: 'DejaVu Sans', sans-serif;
+            /* DejaVu Sans is the most reliable font for DomPDF with UTF-8/Unicode support including ₹ */
+            font-family: 'DejaVu Sans', 'Arial Unicode MS', sans-serif;
             color: #1f2937;
             /* gray-800 */
             line-height: 1.5;
