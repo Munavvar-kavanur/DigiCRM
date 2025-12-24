@@ -53,6 +53,7 @@ Open the `.env` file and configure your database settings (DB_DATABASE, DB_USERN
 Create the log file and set required permissions:
 
 ```bash
+sudo chmod -R ugo+rw storage
 touch storage/logs/laravel.log
 sudo chmod -R ugo+rw storage
 ```
