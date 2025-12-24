@@ -48,7 +48,16 @@ cp .env.example .env
 
 Open the `.env` file and configure your database settings (DB_DATABASE, DB_USERNAME, DB_PASSWORD, etc.).
 
-### 3. Generate Application Key
+### 3. Directory Permissions
+
+Create the log file and set required permissions:
+
+```bash
+touch storage/logs/laravel.log
+sudo chmod -R ugo+rw storage
+```
+
+### 4. Generate Application Key
 
 Generate the Laravel application key:
 
@@ -56,7 +65,7 @@ Generate the Laravel application key:
 php artisan key:generate
 ```
 
-### 4. Run Database Migrations
+### 5. Run Database Migrations
 
 Set up your database tables:
 
@@ -75,7 +84,7 @@ php artisan migrate:fresh --seed
 - **Email:** test@example.com
 - **Password:** password
 
-### 5. Link Storage
+### 6. Link Storage
 
 Create the symbolic link for storage:
 
@@ -83,12 +92,12 @@ Create the symbolic link for storage:
 php artisan storage:link
 ```
 
-### 6. Install Frontend Dependencies
+### 7. Install Frontend Dependencies
 ```bash
 npm install
 ```
 
-### 7. Build/Run Frontend
+### 8. Build/Run Frontend
 ```bash
 npm run dev
 ```
@@ -97,7 +106,7 @@ Or to build for production:
 npm run build
 ```
 
-### 8. Serve the Application
+### 9. Serve the Application
 
 If you are not using a tool like Valet or Laragon, you can serve the application using Artisan:
 
